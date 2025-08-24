@@ -18,25 +18,94 @@ const LOCAL_EXEC_URL = 'http://localhost:3000/execute';
 const CHAT_URL = 'http://localhost:3000/chat';
 const TTS_URL = 'http://localhost:3000/tts';
 
-// TTS state
+// TTS state and settings
 let isTtsEnabled = true;
+let selectedVoice = 'en-US-Wavenet-D';
+let selectedSpeed = 1.0;
+
+const voices = [
+    { name: 'Jarvis (Default)', id: 'en-US-Wavenet-D' },
+    { name: 'Female 1', id: 'en-US-Wavenet-F' },
+    { name: 'Male News 1', id: 'en-US-News-M' },
+    { name: 'Female News 1', id: 'en-US-News-K' },
+    { name: 'Female Standard 1', id: 'en-US-Standard-E' },
+];
 
 /**
- * Creates and appends a TTS toggle button to the UI.
+ * Creates and manages the TTS and settings UI.
  */
-function createTtsButton() {
-    const button = document.createElement('button');
-    button.id = 'tts-button';
-    button.title = 'Toggle Voice';
-    button.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"></path></svg>`;
+function createHeaderUI() {
+    const header = document.createElement('div');
+    header.className = 'header-ui';
 
-    button.onclick = () => {
-        isTtsEnabled = !isTtsEnabled;
-        button.classList.toggle('disabled', !isTtsEnabled);
+    // Settings Panel
+    const settingsPanel = document.createElement('div');
+    settingsPanel.id = 'settings-panel';
+    settingsPanel.className = 'hidden';
+
+    // Voice selection
+    const voiceLabel = document.createElement('label');
+    voiceLabel.htmlFor = 'voice-select';
+    voiceLabel.textContent = 'Voice:';
+    const voiceSelect = document.createElement('select');
+    voiceSelect.id = 'voice-select';
+    voices.forEach(voice => {
+        const option = document.createElement('option');
+        option.value = voice.id;
+        option.textContent = voice.name;
+        voiceSelect.appendChild(option);
+    });
+    voiceSelect.onchange = () => {
+        selectedVoice = voiceSelect.value;
+    };
+    settingsPanel.appendChild(voiceLabel);
+    settingsPanel.appendChild(voiceSelect);
+
+    // Speed control
+    const speedLabel = document.createElement('label');
+    speedLabel.htmlFor = 'speed-slider';
+    speedLabel.textContent = 'Speed:';
+    const speedSlider = document.createElement('input');
+    speedSlider.type = 'range';
+    speedSlider.id = 'speed-slider';
+    speedSlider.min = '0.5';
+    speedSlider.max = '2.0';
+    speedSlider.step = '0.1';
+    speedSlider.value = '1.0';
+    const speedValue = document.createElement('span');
+    speedValue.id = 'speed-value';
+    speedValue.textContent = '1.0x';
+    speedSlider.oninput = () => {
+        selectedSpeed = parseFloat(speedSlider.value);
+        speedValue.textContent = `${selectedSpeed.toFixed(1)}x`;
+    };
+    settingsPanel.appendChild(speedLabel);
+    settingsPanel.appendChild(speedSlider);
+    settingsPanel.appendChild(speedValue);
+
+    // Settings Button
+    const settingsButton = document.createElement('button');
+    settingsButton.id = 'settings-button';
+    settingsButton.title = 'Voice Settings';
+    settingsButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"></path></svg>`;
+    settingsButton.onclick = () => {
+        settingsPanel.classList.toggle('hidden');
     };
 
-    // Prepend to chat container, so it's outside the scrolling area
-    chatContainer.prepend(button);
+    // TTS Toggle Button
+    const ttsButton = document.createElement('button');
+    ttsButton.id = 'tts-button';
+    ttsButton.title = 'Toggle Voice';
+    ttsButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"></path></svg>`;
+    ttsButton.onclick = () => {
+        isTtsEnabled = !isTtsEnabled;
+        ttsButton.classList.toggle('disabled', !isTtsEnabled);
+    };
+
+    header.appendChild(settingsButton);
+    header.appendChild(ttsButton);
+    header.appendChild(settingsPanel);
+    chatContainer.prepend(header);
 }
 
 /**
@@ -46,7 +115,6 @@ function createTtsButton() {
 async function speakText(text: string) {
     if (!isTtsEnabled) return;
 
-    // Strip markdown for cleaner speech, e.g., code blocks and links
     const plainText = text
         .replace(/```[^`]+```/g, 'code snippet')
         .replace(/`[^`]+`/g, 'code')
@@ -56,7 +124,11 @@ async function speakText(text: string) {
         const response = await fetch(TTS_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text: plainText }),
+            body: JSON.stringify({
+                text: plainText,
+                voice: selectedVoice,
+                speakingRate: selectedSpeed
+            }),
         });
 
         if (!response.ok) {
@@ -102,7 +174,7 @@ async function addMessage(sender: 'user' | 'ai', message: string) {
  */
 function addRunButtons(scopeElement: HTMLElement) {
   const codeBlocks = scopeElement.querySelectorAll('pre code.language-python');
-  codeBlocks.forEach((codeBlock) => { 
+  codeBlocks.forEach((codeBlock) => {
     const preElement = codeBlock.parentElement;
     if (
       preElement instanceof HTMLPreElement &&
@@ -231,7 +303,7 @@ async function handleFormSubmit(e: Event) {
 }
 
 // --- Initial Setup ---
-createTtsButton();
+createHeaderUI();
 chatForm.addEventListener('submit', handleFormSubmit);
 
 // Initial welcome message

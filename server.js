@@ -62,6 +62,9 @@ const genAI = new GoogleGenerativeAI(process.env.API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 const ttsClient = new textToSpeech.TextToSpeechClient();
 
+// In-memory store for conversation history
+let conversationHistory = [];
+
 const MPC_CONTEXT = `You are Jarvis, a specialized AI assistant with expertise in Multi-Party Computation (MPC) and other complex topics. Your purpose is to help users understand and work with MPC protocols.
 
 **What is MPC?**
@@ -128,7 +131,11 @@ To find and summarize academic papers on a topic, you should follow these steps:
 1.  Use the 'web_search' tool to search for the topic on academic sites like 'arxiv.org' or 'scholar.google.com'. For example: '{"tool": "web_search", "query": "your_topic site:arxiv.org"}'
 2.  Review the search results to identify promising papers.
 3.  Use the 'web_read' tool to read the abstracts of the most relevant papers.
-4.  Synthesize the information from the abstracts into a summary for the user.`;
+4.  Synthesize the information from the abstracts into a summary for the user.
+
+**Conversation Management:**
+*   To reset the conversation and start fresh, send the message: `/reset`
+`;
 
 
 // --- API Endpoints ---
@@ -165,16 +172,25 @@ app.post('/chat', async (req, res) => {
         return res.status(400).json({ error: 'No prompt provided.' });
     }
 
+    // Handle reset command
+    if (prompt === '/reset') {
+        conversationHistory = [];
+        return res.json({ response: "Memory cleared. I'm ready for a new conversation." });
+    }
+
     try {
-        let conversationHistory = `${MPC_CONTEXT}\n\nUser Question: "${prompt}"\n\nJarvis's Response:`;
+        // Add user's prompt to history
+        conversationHistory.push(`User Question: "${prompt}"`);
+
+        let fullPrompt = `${MPC_CONTEXT}\n\n--- Conversation History ---\n${conversationHistory.join('\n')}\n\nJarvis's Response:`;
         let finalResponse = "";
         let keepReasoning = true;
-        const maxTurns = 10; // Increased max turns for more complex reasoning
+        const maxTurns = 10;
         let turns = 0;
 
         while (keepReasoning && turns < maxTurns) {
             turns++;
-            const result = await model.generateContent(conversationHistory);
+            const result = await model.generateContent(fullPrompt);
             const response = await result.response;
             const text = response.text().trim();
 
@@ -182,7 +198,8 @@ app.post('/chat', async (req, res) => {
             try {
                 const toolCall = JSON.parse(text);
                 if (toolCall.tool) {
-                    conversationHistory += text; // Add AI's tool request to history
+                    // Add AI's tool request to the prompt for the next turn
+                    fullPrompt += text;
                     switch (toolCall.tool) {
                         case 'fs_list':
                             toolResult = await listFiles(toolCall.path);
@@ -203,7 +220,8 @@ app.post('/chat', async (req, res) => {
                         default:
                             toolResult = `Unknown tool: ${toolCall.tool}`;
                     }
-                    conversationHistory += `\n\nTool Result:\n${toolResult}\n\nJarvis's Response:`;
+                    // Add tool result to the prompt
+                    fullPrompt += `\n\nTool Result:\n${toolResult}\n\nJarvis's Response:`;
                 } else {
                     finalResponse = text;
                     keepReasoning = false;
@@ -218,6 +236,11 @@ app.post('/chat', async (req, res) => {
             finalResponse = "Sorry, I got stuck in a loop trying to figure that out. Can you rephrase your question?";
         }
 
+        // Add final AI response to history
+        if (finalResponse) {
+            conversationHistory.push(`Jarvis's Response: ${finalResponse}`);
+        }
+
         res.json({ response: finalResponse });
 
     } catch (error) {
@@ -228,7 +251,7 @@ app.post('/chat', async (req, res) => {
 
 // API endpoint to handle text-to-speech
 app.post('/tts', async (req, res) => {
-    const { text } = req.body;
+    const { text, voice, speakingRate } = req.body;
     if (!text) {
         return res.status(400).json({ error: 'No text provided.' });
     }
@@ -236,8 +259,14 @@ app.post('/tts', async (req, res) => {
     try {
         const request = {
             input: { text: text },
-            voice: { languageCode: 'en-US', name: 'en-US-Wavenet-D', ssmlGender: 'MALE' },
-            audioConfig: { audioEncoding: 'MP3' },
+            voice: {
+                languageCode: 'en-US',
+                name: voice || 'en-US-Wavenet-D', // Default voice
+            },
+            audioConfig: {
+                audioEncoding: 'MP3',
+                speakingRate: speakingRate || 1.0, // Default speed
+            },
         };
 
         const [response] = await ttsClient.synthesizeSpeech(request);

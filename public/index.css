@@ -337,3 +337,91 @@ code {
   height: 100%;
   fill: currentColor;
 }
+
+/* Header UI Styling */
+.header-ui {
+    position: absolute;
+    top: 1rem;
+    right: 1.5rem;
+    z-index: 10;
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.header-ui button {
+    background: none;
+    border: 1px solid rgba(0, 229, 255, 0.5);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    padding: 8px;
+    cursor: pointer;
+    color: rgba(0, 229, 255, 0.7);
+    transition: all 0.3s ease;
+}
+
+.header-ui button:hover {
+    background-color: rgba(0, 229, 255, 0.2);
+    color: #00e5ff;
+}
+
+.header-ui button.disabled {
+    color: #555;
+    border-color: #555;
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+.header-ui button.disabled:hover {
+    background-color: rgba(255, 0, 0, 0.2);
+    border-color: #a80000;
+    color: #a80000;
+}
+
+.header-ui button svg {
+    width: 100%;
+    height: 100%;
+    fill: currentColor;
+}
+
+#settings-panel {
+    position: absolute;
+    top: 50px; /* Position below the buttons */
+    right: 0;
+    background-color: rgba(10, 25, 47, 0.95);
+    border: 1px solid rgba(0, 229, 255, 0.5);
+    border-radius: 8px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 250px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+}
+
+#settings-panel.hidden {
+    display: none;
+}
+
+#settings-panel label {
+    font-size: 0.9em;
+}
+
+#settings-panel select,
+#settings-panel input[type="range"] {
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(0, 229, 255, 0.4);
+    color: #00e5ff;
+    border-radius: 4px;
+    padding: 0.25rem;
+}
+
+#settings-panel select {
+    cursor: pointer;
+}
+
+#speed-value {
+    margin-left: 0.5rem;
+    font-size: 0.9em;
+}
