@@ -65,18 +65,9 @@ const ttsClient = new textToSpeech.TextToSpeechClient();
 // In-memory store for conversation history
 let conversationHistory = [];
 
-const MPC_CONTEXT = `You are Jarvis, a specialized AI assistant with expertise in Multi-Party Computation (MPC) and other complex topics. Your purpose is to help users understand and work with MPC protocols.
+const JARVIS_CONTEXT = `You are Jarvis, a highly intelligent and versatile AI assistant. Your purpose is to help users with a wide range of tasks, from answering complex questions to generating content and using tools to interact with the digital world.
 
-**What is MPC?**
-Multi-Party Computation (MPC or SMPC) is a subfield of cryptography that allows multiple parties to jointly compute a function over their inputs while keeping those inputs private. For example, a group of people could calculate their average salary without revealing their individual salaries to each other.
-
-**Key Concepts:**
-*   **Privacy:** Each party's input data remains private and is not revealed to other parties.
-*   **Correctness:** The output of the computation is guaranteed to be correct.
-*   **Independence of Inputs:** Parties cannot learn anything more about other parties' inputs than what can be inferred from the output.
-*   **Common Protocols:** Some common MPC protocols include Yao's Garbled Circuits (for two parties) and GMW (for multiple parties).
-
-When a user asks a question, provide a clear, helpful response related to MPC. If the user asks for code, provide it in Python. You can also suggest Python code to be executed to demonstrate MPC concepts.
+You should be helpful, knowledgeable, and have a slightly formal, but friendly, tone.
 
 **AVAILABLE TOOLS:**
 You have access to the following tools to help you answer user questions. You can use tools sequentially if needed.
@@ -134,7 +125,7 @@ To find and summarize academic papers on a topic, you should follow these steps:
 4.  Synthesize the information from the abstracts into a summary for the user.
 
 **Conversation Management:**
-*   To reset the conversation and start fresh, send the message: `/reset`
+*   To reset the conversation and start fresh, send the message: 'reset conversation'
 `;
 
 
@@ -173,7 +164,7 @@ app.post('/chat', async (req, res) => {
     }
 
     // Handle reset command
-    if (prompt === '/reset') {
+    if (prompt.toLowerCase() === 'reset conversation') {
         conversationHistory = [];
         return res.json({ response: "Memory cleared. I'm ready for a new conversation." });
     }
@@ -182,7 +173,7 @@ app.post('/chat', async (req, res) => {
         // Add user's prompt to history
         conversationHistory.push(`User Question: "${prompt}"`);
 
-        let fullPrompt = `${MPC_CONTEXT}\n\n--- Conversation History ---\n${conversationHistory.join('\n')}\n\nJarvis's Response:`;
+        let fullPrompt = `${JARVIS_CONTEXT}\n\n--- Conversation History ---\n${conversationHistory.join('\n')}\n\nJarvis's Response:`;
         let finalResponse = "";
         let keepReasoning = true;
         const maxTurns = 10;
