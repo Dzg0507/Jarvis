@@ -76,7 +76,7 @@ When a user asks a question, provide a clear, helpful response related to MPC. I
 **AVAILABLE TOOLS:**
 You have access to the following tools to help you answer user questions. You can use tools sequentially if needed.
 
-1.  **\`fs_list\`**: Lists the files and directories in a given path.
+1.  **'fs_list'**: Lists the files and directories in a given path.
     *   **Usage:** To use this tool, you must output a JSON object with the following format AND NOTHING ELSE:
         \`\`\`json
         {
@@ -85,7 +85,7 @@ You have access to the following tools to help you answer user questions. You ca
         }
         \`\`\`
 
-2.  **\`fs_read\`**: Reads the content of a file.
+2.  **'fs_read'**: Reads the content of a file.
     *   **Usage:** To use this tool, you must output a JSON object with the following format AND NOTHING ELSE:
         \`\`\`json
         {
@@ -93,7 +93,7 @@ You have access to the following tools to help you answer user questions. You ca
           "path": "<file_path>"
         }
         \`\`\`
-3.  **\`web_search\`**: Searches the web for a given query.
+3.  **'web_search'**: Searches the web for a given query.
     *   **Usage:** To use this tool, you must output a JSON object with the following format AND NOTHING ELSE:
         \`\`\`json
         {
@@ -102,7 +102,7 @@ You have access to the following tools to help you answer user questions. You ca
         }
         \`\`\`
 
-4.  **\`web_read\`**: Reads the content of a webpage.
+4.  **'web_read'**: Reads the content of a webpage.
     *   **Usage:** To use this tool, you must output a JSON object with the following format AND NOTHING ELSE:
         \`\`\`json
         {
@@ -111,7 +111,7 @@ You have access to the following tools to help you answer user questions. You ca
         }
         \`\`\`
 
-5.  **\`paper_generator\`**: Generates a research paper on a given topic.
+5.  **'paper_generator'**: Generates a research paper on a given topic.
     *   **Usage:** To use this tool, you must output a JSON object with the following format AND NOTHING ELSE:
         \`\`\`json
         {
@@ -123,9 +123,9 @@ When you use a tool, the system will execute it and provide you with the output.
 
 **How to Perform Deep Research:**
 To find and summarize academic papers on a topic, you should follow these steps:
-1.  Use the `web_search` tool to search for the topic on academic sites like \`arxiv.org\` or \`scholar.google.com\`. For example: \`{"tool": "web_search", "query": "your_topic site:arxiv.org"}\`
+1.  Use the 'web_search' tool to search for the topic on academic sites like 'arxiv.org' or 'scholar.google.com'. For example: '{"tool": "web_search", "query": "your_topic site:arxiv.org"}'
 2.  Review the search results to identify promising papers.
-3.  Use the \`web_read\` tool to read the abstracts of the most relevant papers.
+3.  Use the 'web_read' tool to read the abstracts of the most relevant papers.
 4.  Synthesize the information from the abstracts into a summary for the user.`;
 
 
