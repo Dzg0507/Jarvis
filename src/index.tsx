@@ -7,15 +7,72 @@
 import { marked } from 'marked';
 
 // DOM elements
+const chatContainer = document.getElementById('chat-container')!;
 const chatHistory = document.getElementById('chat-history')!;
 const chatForm = document.getElementById('chat-form')!;
 const chatInput = document.getElementById('chat-input') as HTMLInputElement;
 const loadingIndicator = document.getElementById('loading-indicator')!;
 
-// Local server endpoint
+// Local server endpoints
 const LOCAL_EXEC_URL = 'http://localhost:3000/execute';
 const CHAT_URL = 'http://localhost:3000/chat';
+const TTS_URL = 'http://localhost:3000/tts';
 
+// TTS state
+let isTtsEnabled = true;
+
+/**
+ * Creates and appends a TTS toggle button to the UI.
+ */
+function createTtsButton() {
+    const button = document.createElement('button');
+    button.id = 'tts-button';
+    button.title = 'Toggle Voice';
+    button.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"></path></svg>`;
+
+    button.onclick = () => {
+        isTtsEnabled = !isTtsEnabled;
+        button.classList.toggle('disabled', !isTtsEnabled);
+    };
+
+    // Prepend to chat container, so it's outside the scrolling area
+    chatContainer.prepend(button);
+}
+
+/**
+ * Fetches audio from the server and plays it.
+ * @param text - The text to synthesize.
+ */
+async function speakText(text: string) {
+    if (!isTtsEnabled) return;
+
+    // Strip markdown for cleaner speech, e.g., code blocks and links
+    const plainText = text
+        .replace(/```[^`]+```/g, 'code snippet')
+        .replace(/`[^`]+`/g, 'code')
+        .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1');
+
+    try {
+        const response = await fetch(TTS_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: plainText }),
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`TTS server error: ${response.status} ${errorText}`);
+        }
+
+        const { audioContent } = await response.json();
+        if (audioContent) {
+            const audio = new Audio(`data:audio/mp3;base64,${audioContent}`);
+            audio.play();
+        }
+    } catch (error) {
+        console.error('Failed to speak text:', error);
+    }
+}
 
 /**
  * Appends a message to the chat history and adds run buttons to code blocks.
@@ -33,6 +90,7 @@ async function addMessage(sender: 'user' | 'ai', message: string) {
 
   if (sender === 'ai') {
     addRunButtons(messageElement);
+    speakText(message);
   }
 
   chatHistory.scrollTop = chatHistory.scrollHeight;
@@ -146,12 +204,6 @@ async function handleFormSubmit(e: Event) {
   (chatForm.querySelector('button') as HTMLButtonElement).disabled = true;
   loadingIndicator.classList.remove('hidden');
 
-  const aiMessageElement = document.createElement('div');
-  aiMessageElement.classList.add('message', 'ai');
-  aiMessageElement.innerHTML = '<span class="blinking-cursor"></span>'; 
-  chatHistory.appendChild(aiMessageElement);
-  chatHistory.scrollTop = chatHistory.scrollHeight;
-
   try {
     const response = await fetch(CHAT_URL, {
         method: 'POST',
@@ -165,15 +217,11 @@ async function handleFormSubmit(e: Event) {
     }
 
     const result = await response.json();
-    const rawHtml = await marked.parse(result.response, { breaks: true, gfm: true });
-    aiMessageElement.innerHTML = rawHtml;
-    addRunButtons(aiMessageElement);
-    
-    chatHistory.scrollTop = chatHistory.scrollHeight;
+    addMessage('ai', result.response);
 
   } catch (error) {
     console.error('API Error:', error);
-    aiMessageElement.innerHTML = `Sorry, something went wrong. Please check the console for details.`;
+    addMessage('ai', `Sorry, something went wrong. Please check the console for details.`);
   } finally {
     chatInput.disabled = false;
     (chatForm.querySelector('button') as HTMLButtonElement).disabled = false;
@@ -182,7 +230,8 @@ async function handleFormSubmit(e: Event) {
   }
 }
 
-// Attach event listener
+// --- Initial Setup ---
+createTtsButton();
 chatForm.addEventListener('submit', handleFormSubmit);
 
 // Initial welcome message

@@ -8,6 +8,7 @@ const fs = require('fs');
 const os = require('os');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const PaperGenerator = require('./public/paper_generator.js');
+const textToSpeech = require('@google-cloud/text-to-speech');
 
 const app = express();
 const PORT = 3000;
@@ -59,6 +60,7 @@ app.use(express.static('public'));
 // --- AI Configuration ---
 const genAI = new GoogleGenerativeAI(process.env.API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+const ttsClient = new textToSpeech.TextToSpeechClient();
 
 const MPC_CONTEXT = `You are Jarvis, a specialized AI assistant with expertise in Multi-Party Computation (MPC) and other complex topics. Your purpose is to help users understand and work with MPC protocols.
 
@@ -221,6 +223,29 @@ app.post('/chat', async (req, res) => {
     } catch (error) {
         console.error('API Error:', error);
         res.status(500).json({ error: 'Failed to get response from AI.' });
+    }
+});
+
+// API endpoint to handle text-to-speech
+app.post('/tts', async (req, res) => {
+    const { text } = req.body;
+    if (!text) {
+        return res.status(400).json({ error: 'No text provided.' });
+    }
+
+    try {
+        const request = {
+            input: { text: text },
+            voice: { languageCode: 'en-US', name: 'en-US-Wavenet-D', ssmlGender: 'MALE' },
+            audioConfig: { audioEncoding: 'MP3' },
+        };
+
+        const [response] = await ttsClient.synthesizeSpeech(request);
+        const audioContent = response.audioContent.toString('base64');
+        res.json({ audioContent: audioContent });
+    } catch (error) {
+        console.error('TTS Error:', error);
+        res.status(500).json({ error: 'Failed to synthesize speech.' });
     }
 });
 
