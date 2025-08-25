@@ -19,5 +19,18 @@ export function registerTools(mcpServer, genAI, ttsClient) {
         return { content: [{ type: "text", text: paper }] };
     });
     registerAndDefineTool("save_speech_to_file", { title: "Save Speech to File", description: "Synthesizes text and saves it as an MP3 file.", inputSchema: { text: z.string(), filename: z.string() } }, async ({ text, filename }) => ({ content: [{ type: "text", text: await save_speech_to_file(text, filename, ttsClient) }] }));
-    registerAndDefineTool("video_search", { title: "Video Search", description: "Searches for videos and returns a list of results.", inputSchema: { query: z.string() } }, async ({ query }) => ({ content: [{ type: "text", text: await video_search(query) }] }));
+    registerAndDefineTool("video_search", {
+        title: "Video Search",
+        description: "Searches for videos and returns a list of results.",
+        inputSchema: {
+            query: z.string(),
+            options: z.object({
+                maxResults: z.number().optional(),
+                sortBy: z.string().optional(),
+                uploadedAfter: z.string().optional().nullable(),
+                duration: z.enum(['short', 'medium', 'long', 'any']).optional(),
+                quality: z.enum(['high', 'medium', 'low', 'any']).optional()
+            }).optional()
+        }
+    }, async ({ query, options }) => ({ content: [{ type: "text", text: await video_search(query, options) }] }));
 }

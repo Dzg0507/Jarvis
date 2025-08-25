@@ -57,7 +57,20 @@ export function registerTools(mcpServer: McpServer, genAI: GoogleGenerativeAI, t
     );
 
     registerAndDefineTool(
-        "video_search", { title: "Video Search", description: "Searches for videos and returns a list of results.", inputSchema: { query: z.string() } },
-        async ({ query }: { query: string }) => ({ content: [{ type: "text", text: await video_search(query) }] })
+        "video_search", {
+            title: "Video Search",
+            description: "Searches for videos and returns a list of results.",
+            inputSchema: {
+                query: z.string(),
+                options: z.object({
+                    maxResults: z.number().optional(),
+                    sortBy: z.string().optional(),
+                    uploadedAfter: z.string().optional().nullable(),
+                    duration: z.enum(['short', 'medium', 'long', 'any']).optional(),
+                    quality: z.enum(['high', 'medium', 'low', 'any']).optional()
+                }).optional()
+            }
+        },
+        async ({ query, options }: { query: string, options: any }) => ({ content: [{ type: "text", text: await video_search(query, options) }] })
     );
 }

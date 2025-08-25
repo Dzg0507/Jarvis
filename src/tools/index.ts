@@ -53,16 +53,7 @@ export const view_text_website = async (url: string): Promise<string> => {
   }
 }
 
-export const video_search = async (query: string): Promise<string> => {
-    // In a real application, this would call the YouTube API.
-    // For now, we'll return a mock list of videos.
-    const mockVideos = [
-        { title: 'Never Gonna Give You Up', thumbnail: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg', url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' },
-        { title: 'The Ultimate Dog Tease', thumbnail: 'https://i.ytimg.com/vi/nGeKSiCQkPw/hqdefault.jpg', url: 'https://www.youtube.com/watch?v=nGeKSiCQkPw' },
-        { title: 'Keyboard Cat', thumbnail: 'https://i.ytimg.com/vi/J---aiyznGQ/hqdefault.jpg', url: 'https://www.youtube.com/watch?v=J---aiyznGQ' }
-    ];
-    return JSON.stringify(mockVideos);
-};
+export * from './video-search.js';
 
 import textToSpeech from '@google-cloud/text-to-speech';
 
