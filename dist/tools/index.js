@@ -44,6 +44,16 @@ export const view_text_website = async (url) => {
         return `Error reading website: ${error.message}`;
     }
 };
+export const video_search = async (query) => {
+    // In a real application, this would call the YouTube API.
+    // For now, we'll return a mock list of videos.
+    const mockVideos = [
+        { title: 'Never Gonna Give You Up', thumbnail: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg', url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' },
+        { title: 'The Ultimate Dog Tease', thumbnail: 'https://i.ytimg.com/vi/nGeKSiCQkPw/hqdefault.jpg', url: 'https://www.youtube.com/watch?v=nGeKSiCQkPw' },
+        { title: 'Keyboard Cat', thumbnail: 'https://i.ytimg.com/vi/J---aiyznGQ/hqdefault.jpg', url: 'https://www.youtube.com/watch?v=J---aiyznGQ' }
+    ];
+    return JSON.stringify(mockVideos);
+};
 export const save_speech_to_file = async (text, filename, ttsClient) => {
     try {
         const request = {

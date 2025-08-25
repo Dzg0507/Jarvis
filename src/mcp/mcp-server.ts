@@ -1,8 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import textToSpeech from '@google-cloud/text-to-speech';
-import { registerTools } from './tool-registrar.js';
-
+import { registerTools, toolDefinitions } from './tool-registrar.js';
 import { config } from '../config.js';
 
 export function setupMcpServer(ttsClient: textToSpeech.TextToSpeechClient): McpServer {
@@ -11,6 +10,7 @@ export function setupMcpServer(ttsClient: textToSpeech.TextToSpeechClient): McpS
     const mcpServer = new McpServer({
         name: "jarvis-mcp-server-consolidated",
         version: "1.1.0",
+        tools: toolDefinitions,
     });
 
     registerTools(mcpServer, genAI, ttsClient);

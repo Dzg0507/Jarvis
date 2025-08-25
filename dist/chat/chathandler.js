@@ -78,7 +78,7 @@ export async function handleChat(req, res) {
         res.json({ response: finalResponse });
     }
     catch (error) {
-        console.error('API Error:', error);
+        console.error('Error in handleChat:', error);
         res.status(500).json({ error: 'Failed to get response from AI.' });
     }
 }
