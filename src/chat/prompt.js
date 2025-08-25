@@ -1,4 +1,4 @@
-export function buildBasePrompt(toolListString: string): string {
+export function buildBasePrompt(toolListString) {
     return `You are Jarvis, a powerful AI assistant. Your primary purpose is to help users by using the tools available to you.
 
 # Instructions

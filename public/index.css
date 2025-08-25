@@ -438,3 +438,7 @@ code {
     margin-left: 0.5rem;
     font-size: 0.9em;
 }
+
+#video-results-container {
+    display: none;
+}

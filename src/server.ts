@@ -16,6 +16,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 // My local modules
 import { handleChat } from './chat/chathandler.js';
 import { setupMcpServer } from './mcp/mcp-server.js';
+import { initializeJarvisContext } from './chat/mcp-client.js';
 import { config } from './config.js';
 
 // --- Basic Setup ---
@@ -98,6 +99,9 @@ app.get('/', (req, res) => {
 
 // --- Server Start ---
 app.listen(config.server.port, () => {
+    // Initialize the Jarvis context now that the server is running
+    initializeJarvisContext();
+
     console.log(`
   ******************************************************************
   *                                                                *
