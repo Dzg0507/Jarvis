@@ -1,3 +1,5 @@
+import puppeteer, { Browser } from 'puppeteer';
+
 // Type definitions for the video search functions
 
 interface VideoSearchOptions {
@@ -8,88 +10,91 @@ interface VideoSearchOptions {
   quality?: 'high' | 'medium' | 'low' | 'any';
 }
 
-interface VideoItem {
-  id: {
-    videoId: string;
-  };
-  snippet: {
+interface SearchResult {
     title: string;
-    description: string;
-    channelTitle: string;
-    publishedAt: string;
-    thumbnails: {
-      default: {
-        url: string;
-      };
-    };
-  };
-  contentDetails?: {
-    duration: string;
-  };
-  statistics?: {
-    viewCount: string;
-  };
-}
-
-interface VideoSearchResponse {
-  items: VideoItem[];
+    url: string;
 }
 
 export async function video_search(query: string, options: VideoSearchOptions = {}): Promise<string> {
+  let browser: Browser | null = null;
   try {
-    // Placeholder implementation
-    console.log(`Searching for videos with query: "${query}" and options:`, options);
-    const mockResults: VideoItem[] = [
-      { id: { videoId: 'mock1' }, snippet: { title: `Mock Video 1 for ${query}`, description: 'Desc 1', channelTitle: 'Channel 1', publishedAt: '2024-01-01', thumbnails: { default: { url: '' } } } },
-      { id: { videoId: 'mock2' }, snippet: { title: `Mock Video 2 for ${query}`, description: 'Desc 2', channelTitle: 'Channel 2', publishedAt: '2024-01-02', thumbnails: { default: { url: '' } } } },
-    ];
+    console.log(`Starting video search for query: "${query}"`);
+    browser = await puppeteer.launch({
+        // Headless: true is default, but being explicit is good.
+        // Sandbox arguments are often needed in containerized environments.
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    });
+    const page = await browser.newPage();
 
-    const data: VideoSearchResponse = { items: mockResults };
+    // Go to Bing and search for videos
+    const searchUrl = `https://www.bing.com/videos/search?q=${encodeURIComponent(query)}`;
+    console.log(`Navigating to ${searchUrl}`);
+    await page.goto(searchUrl, { waitUntil: 'networkidle2' });
 
-    const formattedResults = data.items.map((item: VideoItem, index: number) => {
-      return `${index + 1}. ${item.snippet.title}`;
+    // Wait for the results to load
+    console.log('Waiting for search results to load...');
+    try {
+        // This is the correct selector for video result tiles on Bing.
+        await page.waitForSelector('.mc_vtvc', { timeout: 10000 });
+        console.log('Search results loaded.');
+    } catch (e) {
+        console.error("Failed to find selector '.mc_vtvc' on Bing. Dumping page HTML for debugging...");
+        const pageContent = await page.content();
+        console.log(pageContent);
+        throw new Error("Failed to find the video results container element on the page.");
+    }
+
+    // Extract the search results
+    const results: SearchResult[] = await page.evaluate(() => {
+        const items: SearchResult[] = [];
+        // Select all video result containers
+        document.querySelectorAll('.mc_vtvc').forEach(element => {
+            const titleElement = element.querySelector('.mc_vtvc_title');
+            // The real URL is in the 'ourl' attribute of this div
+            const urlContainer = element.querySelector('.mc_vtvc_con_rc');
+
+            const title = titleElement ? (titleElement as HTMLElement).innerText.trim() : 'No title found';
+            const url = urlContainer ? urlContainer.getAttribute('ourl') : null;
+
+            if (url) {
+                 items.push({ title, url });
+            }
+        });
+        return items;
     });
 
-    const summary = `Found ${data.items.length} videos for "${query}":\n\n${formattedResults.join('\n')}`;
+    console.log(`Found ${results.length} results.`);
 
-    return summary;
+    if (results.length === 0) {
+        return `No video results found for "${query}".`;
+    }
+
+    // Format the results
+    const formattedResults = results
+        .slice(0, options.maxResults || 10) // Limit to maxResults or 10
+        .map((item, index) => `${index + 1}. ${item.title}\n   ${item.url}`)
+        .join('\n\n');
+
+    return `Found ${results.length} videos for "${query}":\n\n${formattedResults}`;
+
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    console.error('Error during video search:', errorMessage);
     return `Error searching for videos: ${errorMessage}`;
+  } finally {
+    if (browser) {
+      await browser.close();
+      console.log('Browser closed.');
+    }
   }
 }
 
 export async function video_search_alternative(query: string, maxResults: number = 20): Promise<string> {
     try {
-        // Placeholder implementation
-        console.log(`Searching for videos with query: "${query}" and maxResults: ${maxResults}`);
+        // This can be another implementation, maybe for a different site
         return `This is an alternative video search for "${query}". (Not implemented yet)`;
     } catch (error: unknown) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
         return `Error in alternative video search: ${errorMessage}`;
     }
-}
-
-function formatVideoResults(results: VideoItem[], query: string): string {
-  if (!results || results.length === 0) {
-    return `No videos found for "${query}"`;
-  }
-
-  const formatted = results.map((video: VideoItem, index: number) => {
-    return `${index + 1}. ${video.snippet.title}`;
-  });
-
-  return formatted.join('\n');
-}
-
-function formatDuration(seconds: number): string {
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const remainingSeconds = seconds % 60;
-
-  if (hours > 0) {
-    return `${hours}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-  } else {
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-  }
 }

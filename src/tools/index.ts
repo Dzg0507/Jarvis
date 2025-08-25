@@ -36,10 +36,7 @@ export const readFile = async (filePath: string): Promise<string> => {
   }
 }
 
-export const google_search = async (query: string): Promise<string> => {
-  const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
-  return `I cannot browse the web directly, but you can see the search results for "${query}" here: ${searchUrl}`;
-}
+export * from './web-search.js';
 
 export const view_text_website = async (url: string): Promise<string> => {
   try {
@@ -54,6 +51,7 @@ export const view_text_website = async (url: string): Promise<string> => {
 }
 
 export * from './video-search.js';
+export * from './notepad.js';
 
 import textToSpeech from '@google-cloud/text-to-speech';
 

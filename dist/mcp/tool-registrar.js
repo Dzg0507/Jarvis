@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import PaperGenerator from '../tools/paper-generator.js';
-import { listFiles, readFile, google_search, view_text_website, save_speech_to_file, video_search } from '../tools/index.js';
+import { listFiles, readFile, view_text_website, save_speech_to_file, video_search, web_search, save_note, read_notes } from '../tools/index.js';
 import { config } from '../config.js';
 export const toolDefinitions = {};
 export function registerTools(mcpServer, genAI, ttsClient) {
@@ -11,10 +11,12 @@ export function registerTools(mcpServer, genAI, ttsClient) {
     };
     registerAndDefineTool("fs_list", { title: "List Files", description: "Lists files and directories.", inputSchema: { path: z.string() } }, async ({ path }) => ({ content: [{ type: "text", text: await listFiles(path) }] }));
     registerAndDefineTool("fs_read", { title: "Read File", description: "Reads the content of a file.", inputSchema: { path: z.string() } }, async ({ path }) => ({ content: [{ type: "text", text: await readFile(path) }] }));
-    registerAndDefineTool("web_search", { title: "Web Search", description: "Searches the web.", inputSchema: { query: z.string() } }, async ({ query }) => ({ content: [{ type: "text", text: await google_search(query) }] }));
+    registerAndDefineTool("web_search", { title: "Web Search", description: "Searches the web and returns a summary of the top results.", inputSchema: { query: z.string() } }, async ({ query }) => ({ content: [{ type: "text", text: await web_search(query, model) }] }));
     registerAndDefineTool("web_read", { title: "Web Read", description: "Reads a webpage.", inputSchema: { url: z.string() } }, async ({ url }) => ({ content: [{ type: "text", text: await view_text_website(url) }] }));
+    registerAndDefineTool("save_note", { title: "Save Note", description: "Saves a note to the notepad.", inputSchema: { note_content: z.string() } }, async ({ note_content }) => ({ content: [{ type: "text", text: await save_note(note_content) }] }));
+    registerAndDefineTool("read_notes", { title: "Read Notes", description: "Reads all notes from the notepad.", inputSchema: {} }, async () => ({ content: [{ type: "text", text: await read_notes() }] }));
     registerAndDefineTool("paper_generator", { title: "Paper Generator", description: "Generates a research paper.", inputSchema: { topic: z.string() } }, async ({ topic }) => {
-        const paperGenerator = new PaperGenerator({ model, google_search, view_text_website });
+        const paperGenerator = new PaperGenerator({ model, web_search, view_text_website });
         const paper = await paperGenerator.generate(topic);
         return { content: [{ type: "text", text: paper }] };
     });

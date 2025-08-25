@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import textToSpeech from '@google-cloud/text-to-speech';
 import PaperGenerator from '../tools/paper-generator.js';
-import { listFiles, readFile, google_search, view_text_website, save_speech_to_file, video_search } from '../tools/index.js';
+import { listFiles, readFile, view_text_website, save_speech_to_file, video_search, web_search, save_note, read_notes } from '../tools/index.js';
 import { config } from '../config.js';
 
 interface McpToolDefinition {
@@ -33,8 +33,8 @@ export function registerTools(mcpServer: McpServer, genAI: GoogleGenerativeAI, t
     );
 
     registerAndDefineTool(
-        "web_search", { title: "Web Search", description: "Searches the web.", inputSchema: { query: z.string() } },
-        async ({ query }: { query: string }) => ({ content: [{ type: "text", text: await google_search(query) }] })
+        "web_search", { title: "Web Search", description: "Searches the web and returns a summary of the top results.", inputSchema: { query: z.string() } },
+        async ({ query }: { query: string }) => ({ content: [{ type: "text", text: await web_search(query, model) }] })
     );
 
     registerAndDefineTool(
@@ -43,9 +43,19 @@ export function registerTools(mcpServer: McpServer, genAI: GoogleGenerativeAI, t
     );
 
     registerAndDefineTool(
+        "save_note", { title: "Save Note", description: "Saves a note to the notepad.", inputSchema: { note_content: z.string() } },
+        async ({ note_content }: { note_content: string }) => ({ content: [{ type: "text", text: await save_note(note_content) }] })
+    );
+
+    registerAndDefineTool(
+        "read_notes", { title: "Read Notes", description: "Reads all notes from the notepad.", inputSchema: {} },
+        async () => ({ content: [{ type: "text", text: await read_notes() }] })
+    );
+
+    registerAndDefineTool(
         "paper_generator", { title: "Paper Generator", description: "Generates a research paper.", inputSchema: { topic: z.string() } },
         async ({ topic }: { topic: string }) => {
-            const paperGenerator = new PaperGenerator({ model, google_search, view_text_website });
+            const paperGenerator = new PaperGenerator({ model, web_search, view_text_website });
             const paper = await paperGenerator.generate(topic);
             return { content: [{ type: "text", text: paper }] };
         }

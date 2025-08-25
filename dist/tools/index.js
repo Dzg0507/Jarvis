@@ -28,10 +28,7 @@ export const readFile = async (filePath) => {
         return `Error reading file: ${error.message}`;
     }
 };
-export const google_search = async (query) => {
-    const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
-    return `I cannot browse the web directly, but you can see the search results for "${query}" here: ${searchUrl}`;
-};
+export * from './web-search.js';
 export const view_text_website = async (url) => {
     try {
         const response = await fetch(url);
@@ -45,6 +42,7 @@ export const view_text_website = async (url) => {
     }
 };
 export * from './video-search.js';
+export * from './notepad.js';
 export const save_speech_to_file = async (text, filename, ttsClient) => {
     try {
         const request = {

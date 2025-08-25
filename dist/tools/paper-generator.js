@@ -1,7 +1,7 @@
 export default class PaperGenerator {
-    constructor({ model, google_search, view_text_website }) {
+    constructor({ model, web_search, view_text_website }) {
         this.model = model;
-        this.google_search = google_search;
+        this.web_search = web_search;
         this.view_text_website = view_text_website;
     }
     async generate(topic) {
@@ -43,29 +43,16 @@ The outline should be well-structured, with clear sections and subsections. It s
             if (!section)
                 continue;
             console.log(`Researching section: ${section}`);
-            const query = `"${topic}" "${section}"`;
-            let sectionContent = "";
+            const query = `detailed information on "${topic}" focusing on "${section}"`;
             try {
-                const searchResultsText = await this.google_search(query);
-                // Assuming google_search returns a JSON string of format: [{title: string, url: string, snippet: string}]
-                const searchResults = JSON.parse(searchResultsText);
-                const urlsToRead = searchResults.slice(0, 2).map((r) => r.url); // Read top 2 results
-                for (const url of urlsToRead) {
-                    try {
-                        console.log(`Reading URL: ${url}`);
-                        const content = await this.view_text_website(url);
-                        sectionContent += `\n\n--- Source: ${url} ---\n${content.substring(0, 2000)}`; // Truncate content to avoid being too large
-                    }
-                    catch (error) {
-                        console.error(`Error reading URL ${url}:`, error);
-                    }
-                }
+                // The new web_search tool already returns summarized content from top results.
+                const sectionContent = await this.web_search(query, this.model);
+                researchData[section] = sectionContent;
             }
             catch (error) {
                 console.error(`Error researching section "${section}":`, error);
-                sectionContent = `Error: Could not perform research for section "${section}".`;
+                researchData[section] = `Error: Could not perform research for section "${section}".`;
             }
-            researchData[section] = sectionContent;
         }
         return researchData;
     }

@@ -2,18 +2,18 @@ import { GoogleGenerativeAI, GenerativeModel } from "@google/generative-ai";
 
 interface PaperGeneratorDependencies {
     model: GenerativeModel;
-    google_search: (query: string) => Promise<string>;
+    web_search: (query: string, model: GenerativeModel) => Promise<string>;
     view_text_website: (url: string) => Promise<string>;
 }
 
 export default class PaperGenerator {
     private model: GenerativeModel;
-    private google_search: (query: string) => Promise<string>;
+    private web_search: (query: string, model: GenerativeModel) => Promise<string>;
     private view_text_website: (url: string) => Promise<string>;
 
-    constructor({ model, google_search, view_text_website }: PaperGeneratorDependencies) {
+    constructor({ model, web_search, view_text_website }: PaperGeneratorDependencies) {
         this.model = model;
-        this.google_search = google_search;
+        this.web_search = web_search;
         this.view_text_website = view_text_website;
     }
 
@@ -54,32 +54,20 @@ The outline should be well-structured, with clear sections and subsections. It s
         console.log(`Performing research for topic "${topic}"`);
         const researchData: Record<string, string> = {};
         const sections = outline.split('\n').filter(line => line.match(/^\s*(\d+\.|-|\*)\s+/)).map(line => line.replace(/^\s*(\d+\.|-|\*)\s+/, '').trim());
+
         for (const section of sections) {
             if (!section) continue;
             console.log(`Researching section: ${section}`);
-            const query = `"${topic}" "${section}"`;
-            let sectionContent = "";
+            const query = `detailed information on "${topic}" focusing on "${section}"`;
             try {
-                const searchResultsText = await this.google_search(query);
-                // Assuming google_search returns a JSON string of format: [{title: string, url: string, snippet: string}]
-                const searchResults = JSON.parse(searchResultsText);
-                const urlsToRead = searchResults.slice(0, 2).map((r: any) => r.url); // Read top 2 results
-                for (const url of urlsToRead) {
-                    try {
-                        console.log(`Reading URL: ${url}`);
-                        const content = await this.view_text_website(url);
-                        sectionContent += `\n\n--- Source: ${url} ---\n${content.substring(0, 2000)}`; // Truncate content to avoid being too large
-                    }
-                    catch (error) {
-                        console.error(`Error reading URL ${url}:`, error);
-                    }
-                }
+                // The new web_search tool already returns summarized content from top results.
+                const sectionContent = await this.web_search(query, this.model);
+                researchData[section] = sectionContent;
             }
             catch (error) {
                 console.error(`Error researching section "${section}":`, error);
-                sectionContent = `Error: Could not perform research for section "${section}".`;
+                researchData[section] = `Error: Could not perform research for section "${section}".`;
             }
-            researchData[section] = sectionContent;
         }
         return researchData;
     }
