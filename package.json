@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "concurrently -n \"MCP,MAIN\" -c \"bgBlue.bold,bgMagenta.bold\" \"npm:start:mcp\" \"node server.js\"",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
     "build:mcp": "tsc --project tsconfig.mcp.json",
@@ -28,6 +29,7 @@
     "@types/marked": "^5.0.2",
     "@types/node": "^24.3.0",
     "@types/node-fetch": "^2.6.13",
+    "concurrently": "^9.2.0",
     "typescript": "^5.5.3"
   }
 }
