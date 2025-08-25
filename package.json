@@ -5,22 +5,29 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc"
+    "build": "tsc",
+    "build:mcp": "tsc --project tsconfig.mcp.json",
+    "start:mcp": "node dist/mcp/mcp-server.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "dependencies": {
     "@google-cloud/text-to-speech": "^6.2.0",
     "@google/generative-ai": "^0.14.1",
+    "@modelcontextprotocol/sdk": "^1.17.4",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
-    "express": "^4.19.2"
+    "express": "^4.19.2",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
     "@types/marked": "^5.0.2",
     "@types/node": "^24.3.0",
+    "@types/node-fetch": "^2.6.13",
     "typescript": "^5.5.3"
   }
 }
