@@ -22,7 +22,7 @@ async function initializeMcpClient() {
 
         const tools = await client.listTools();
 
-        let toolListString = tools.map((tool, index) => {
+        let toolListString = Object.values(tools).map((tool, index) => {
             const params = Object.keys(tool.inputSchema || {}).map(key => `<${key}>`).join(', ');
             return `${index + 1}. **'${tool.name}'**: ${tool.description}\n   *   **Parameters:** ${params || 'None'}`;
         }).join('\n\n');

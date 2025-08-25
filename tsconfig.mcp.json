@@ -12,7 +12,7 @@
     "allowJs": true,
     "allowSyntheticDefaultImports": true
   },
-  "include": ["mcp-server.ts", "src/tools.ts"],
+  "include": ["mcp-server.ts", "src/tools.ts", "src/paper_generator.ts"],
   "ts-node": {
     "esm": true,
     "experimentalSpecifierResolution": "node"

@@ -1,12 +1,12 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import { z } from 'zod';
-import { listFiles, readFile, google_search, view_text_website } from './src/tools.js';
-import { PaperGenerator } from './public/paper_generator.js';
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import 'dotenv/config';
+import PaperGenerator from './src/paper_generator.js';
+import { listFiles, readFile, google_search, view_text_website } from './src/tools.js';
 
 // AI Configuration
 if (!process.env.API_KEY) {
@@ -36,7 +36,6 @@ server.registerTool(
     inputSchema: { path: z.string() },
   },
   async ({ path }: { path: string }) => {
-    console.log(`Running fs_list with path: ${path}`);
     return {
       content: [{ type: "text", text: await listFiles(path) }],
     };
@@ -51,7 +50,6 @@ server.registerTool(
     inputSchema: { path: z.string() },
   },
   async ({ path }: { path: string }) => {
-    console.log(`Running fs_read with path: ${path}`);
     return {
       content: [{ type: "text", text: await readFile(path) }],
     };
@@ -66,7 +64,6 @@ server.registerTool(
     inputSchema: { query: z.string() },
   },
   async ({ query }: { query: string }) => {
-    console.log(`Running web_search with query: ${query}`);
     return {
       content: [{ type: "text", text: await google_search(query) }],
     };
@@ -81,7 +78,6 @@ server.registerTool(
     inputSchema: { url: z.string() },
   },
   async ({ url }: { url: string }) => {
-    console.log(`Running web_read with url: ${url}`);
     return {
       content: [{ type: "text", text: await view_text_website(url) }],
     };
@@ -96,7 +92,6 @@ server.registerTool(
     inputSchema: { topic: z.string() },
   },
   async ({ topic }: { topic: string }) => {
-    console.log(`Running paper_generator with topic: ${topic}`);
     const paperGenerator = new PaperGenerator({ model, google_search, view_text_website });
     const paper = await paperGenerator.generate(topic);
     return {

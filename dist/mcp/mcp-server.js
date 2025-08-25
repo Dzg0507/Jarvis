@@ -1,12 +1,12 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import { z } from 'zod';
-import { listFiles, readFile, google_search, view_text_website } from './src/tools.js';
-import { PaperGenerator } from './public/paper_generator.js';
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import 'dotenv/config';
+import PaperGenerator from './src/paper_generator.js';
+import { listFiles, readFile, google_search, view_text_website } from './src/tools.js';
 // AI Configuration
 if (!process.env.API_KEY) {
     throw new Error("API_KEY environment variable not set");
@@ -29,7 +29,6 @@ server.registerTool("fs_list", {
     description: "Lists the files and directories in a given path.",
     inputSchema: { path: z.string() },
 }, async ({ path }) => {
-    console.log(`Running fs_list with path: ${path}`);
     return {
         content: [{ type: "text", text: await listFiles(path) }],
     };
@@ -39,7 +38,6 @@ server.registerTool("fs_read", {
     description: "Reads the content of a file.",
     inputSchema: { path: z.string() },
 }, async ({ path }) => {
-    console.log(`Running fs_read with path: ${path}`);
     return {
         content: [{ type: "text", text: await readFile(path) }],
     };
@@ -49,7 +47,6 @@ server.registerTool("web_search", {
     description: "Searches the web for a given query.",
     inputSchema: { query: z.string() },
 }, async ({ query }) => {
-    console.log(`Running web_search with query: ${query}`);
     return {
         content: [{ type: "text", text: await google_search(query) }],
     };
@@ -59,7 +56,6 @@ server.registerTool("web_read", {
     description: "Reads the content of a webpage.",
     inputSchema: { url: z.string() },
 }, async ({ url }) => {
-    console.log(`Running web_read with url: ${url}`);
     return {
         content: [{ type: "text", text: await view_text_website(url) }],
     };
@@ -69,7 +65,6 @@ server.registerTool("paper_generator", {
     description: "Generates a research paper on a given topic.",
     inputSchema: { topic: z.string() },
 }, async ({ topic }) => {
-    console.log(`Running paper_generator with topic: ${topic}`);
     const paperGenerator = new PaperGenerator({ model, google_search, view_text_website });
     const paper = await paperGenerator.generate(topic);
     return {

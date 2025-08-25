@@ -114,4 +114,5 @@ Please write a clear, concise, and well-structured section based on the provided
         return paper;
     }
 }
-export { PaperGenerator };
+module.exports = PaperGenerator;
+export {};

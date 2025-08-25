@@ -1,5 +1,4 @@
-"use strict";
-class PaperGenerator {
+export default class PaperGenerator {
     constructor({ model, google_search, view_text_website }) {
         this.model = model;
         this.google_search = google_search;
@@ -114,4 +113,3 @@ Please write a clear, concise, and well-structured section based on the provided
         return paper;
     }
 }
-export { PaperGenerator };
