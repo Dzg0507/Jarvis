@@ -27,8 +27,8 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.static('public'));
 // --- AI and MCP Configuration ---
-const mcpServer = setupMcpServer();
 const ttsClient = new textToSpeech.TextToSpeechClient();
+const mcpServer = setupMcpServer(ttsClient);
 // --- API Endpoints ---
 // MCP Endpoint
 app.post('/mcp', async (req, res) => {

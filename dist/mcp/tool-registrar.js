@@ -1,8 +1,8 @@
 import { z } from 'zod';
 import PaperGenerator from '../tools/paper-generator.js';
-import { listFiles, readFile, google_search, view_text_website } from '../tools/index.js';
+import { listFiles, readFile, google_search, view_text_website, save_speech_to_file } from '../tools/index.js';
 import { config } from '../config.js';
-export function registerTools(mcpServer, genAI) {
+export function registerTools(mcpServer, genAI, ttsClient) {
     const model = genAI.getGenerativeModel({ model: config.ai.modelName });
     mcpServer.registerTool("fs_list", { title: "List Files", description: "Lists files and directories.", inputSchema: { path: z.string() } }, async ({ path }) => ({ content: [{ type: "text", text: await listFiles(path) }] }));
     mcpServer.registerTool("fs_read", { title: "Read File", description: "Reads the content of a file.", inputSchema: { path: z.string() } }, async ({ path }) => ({ content: [{ type: "text", text: await readFile(path) }] }));
@@ -13,4 +13,5 @@ export function registerTools(mcpServer, genAI) {
         const paper = await paperGenerator.generate(topic);
         return { content: [{ type: "text", text: paper }] };
     });
+    mcpServer.registerTool("save_speech_to_file", { title: "Save Speech to File", description: "Synthesizes text and saves it as an MP3 file.", inputSchema: { text: z.string(), filename: z.string() } }, async ({ text, filename }) => ({ content: [{ type: "text", text: await save_speech_to_file(text, filename, ttsClient) }] }));
 }

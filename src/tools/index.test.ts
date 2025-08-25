@@ -1,5 +1,5 @@
 import { vi, describe, it, expect } from 'vitest';
-import { listFiles } from './index';
+import { listFiles } from './index.js';
 
 describe('File System Tools', () => {
   describe('listFiles', () => {
