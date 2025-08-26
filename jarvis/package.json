@@ -1,14 +1,13 @@
-﻿{
+{
   "name": "jarvis-local",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node dist/server.js",
-    "test": "vitest",
-    "build": "npm run build:backend && npm run build:frontend",
-    "build:backend": "tsc --project tsconfig.json",
-    "build:frontend": "tsc --project tsconfig.frontend.json"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "build:mcp": "tsc --project tsconfig.mcp.json",
+    "start:mcp": "node dist/mcp/mcp-server.js"
   },
   "keywords": [],
   "author": "",
@@ -21,12 +20,6 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
-    "groq-sdk": "^0.30.0",
-    "openai": "^5.15.0",
-    "puppeteer": "^24.17.0",
-    "puppeteer-extra": "^3.3.6",
-    "puppeteer-extra-plugin-stealth": "^2.11.2",
-    "selenium-webdriver": "^4.35.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {
@@ -35,11 +28,6 @@
     "@types/marked": "^5.0.2",
     "@types/node": "^24.3.0",
     "@types/node-fetch": "^2.6.13",
-    "@types/selenium-webdriver": "^4.1.22",
-    "concurrently": "^9.2.0",
-    "esbuild": "^0.25.9",
-    "typescript": "^5.5.3",
-    "vitest": "^3.2.4",
-    "wait-on": "^8.0.4"
+    "typescript": "^5.5.3"
   }
 }

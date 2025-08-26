@@ -1,0 +1,15 @@
+﻿# Dependencies
+/node_modules
+
+# Build artifacts from TypeScript
+/public/index.js
+/public/index.js.map
+
+# Environment variables
+.env
+
+# Visual Studio folder
+.vs/
+
+# Log files
+npm-debug.log*

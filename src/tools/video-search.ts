@@ -1,82 +1,119 @@
-import puppeteer, { Browser } from 'puppeteer';
+﻿import { Builder, By, until, WebDriver, Capabilities } from 'selenium-webdriver';
 
-// Type definitions for the video search functions
-
-interface VideoSearchOptions {
-  maxResults?: number;
-  sortBy?: string;
-  uploadedAfter?: string | null;
-  duration?: 'short' | 'medium' | 'long' | 'any';
-  quality?: 'high' | 'medium' | 'low' | 'any';
+interface VideoSearchOptions { 
+    maxResults?: number; 
 }
 
-interface SearchResult {
-    title: string;
-    url: string;
-    thumbnail: string;
+interface SearchResult { 
+    title: string; 
+    url: string; 
+    thumbnail: string; 
+}
+
+async function _searchBrave(query: string, driver: WebDriver): Promise<SearchResult[]> {
+    console.log(`[DEBUG] [Brave] Navigating to search URL for: "${query}"`);
+    const searchUrl = `https://search.brave.com/videos?q=${encodeURIComponent(query)}&safesearch=off`;
+    await driver.get(searchUrl);
+    try {
+        const closeButton = await driver.wait(until.elementLocated(By.css('button[aria-label="Close"]')), 5000);
+        await closeButton.click();
+        console.log('[DEBUG] [Brave] Privacy banner closed.');
+    } catch (e) { 
+        console.log('[DEBUG] [Brave] Privacy banner not found, continuing...'); 
+    }
+    const videoSelector = 'div.snippet[data-type="videos"]';
+    console.log(`[DEBUG] [Brave] Waiting for selector: ${videoSelector}`);
+    await driver.wait(until.elementLocated(By.css(videoSelector)), 20000);
+    console.log('[DEBUG] [Brave] Search results loaded.');
+    const items = await driver.findElements(By.css(videoSelector));
+    const results: SearchResult[] = [];
+    for (const item of items) {
+        try {
+            const anchor = await item.findElement(By.css('a'));
+            const url = await anchor.getAttribute('href');
+            const title = await item.findElement(By.css('.snippet-title')).getText();
+            const img = await item.findElement(By.css('img.video-thumb'));
+            const thumbnail = await img.getAttribute('src');
+            if (url && title && thumbnail) {
+                results.push({ title, url, thumbnail });
+            }
+        } catch (e) { 
+            console.warn('[DEBUG] [Brave] Could not parse a video snippet, skipping.'); 
+        }
+    }
+    return results;
+}
+
+async function _searchDuckDuckGo(query: string, driver: WebDriver): Promise<SearchResult[]> {
+    console.log(`[DEBUG] [DDG] Navigating to search URL for: "${query}"`);
+    const searchUrl = `https://duckduckgo.com/?q=!v+${encodeURIComponent(query)}&ia=videos`;
+    await driver.get(searchUrl);
+    const videoSelector = '.tile--vid';
+    console.log(`[DEBUG] [DDG] Waiting for selector: ${videoSelector}`);
+    await driver.wait(until.elementLocated(By.css(videoSelector)), 20000);
+    console.log('[DEBUG] [DDG] Search results loaded.');
+    const items = await driver.findElements(By.css(videoSelector));
+    const results: SearchResult[] = [];
+    for (const item of items) {
+         try {
+            const titleElement = await item.findElement(By.css('.tile__title > a'));
+            const url = await titleElement.getAttribute('href');
+            const title = await titleElement.getText();
+            const thumbElement = await item.findElement(By.css('.tile__media__img'));
+            const style = await thumbElement.getAttribute('style');
+            const thumbnailUrlMatch = style.match(/url\("(.*)"\)/);
+            const thumbnail = thumbnailUrlMatch ? `https:${thumbnailUrlMatch[1]}` : '';
+            if (url && title && thumbnail) {
+                results.push({ title, url, thumbnail });
+            }
+        } catch (e) { 
+            console.warn('[DEBUG] [DDG] Could not parse a video snippet, skipping.'); 
+        }
+    }
+    return results;
 }
 
 export async function video_search(query: string, options: VideoSearchOptions = {}): Promise<string> {
-  let browser: Browser | null = null;
+  let driver: WebDriver | null = null;
   try {
-    console.log(`Starting video search for query: "${query}"`);
-    browser = await puppeteer.launch({
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    console.log(`[DEBUG] Initializing Selenium WebDriver for video search...`);
+    
+    // --- START OF THE FIX ---
+    // We now use Capabilities instead of Chrome Options to avoid the broken import.
+    const capabilities = Capabilities.chrome();
+    capabilities.set('goog:chromeOptions', {
+        args: [
+            '--headless',
+            '--no-sandbox',
+            '--disable-dev-shm-usage',
+            '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        ]
     });
-    const page = await browser.newPage();
+    
+    driver = await new Builder().withCapabilities(capabilities).build();
+    // --- END OF THE FIX ---
 
-    const searchUrl = `https://www.bing.com/videos/search?q=${encodeURIComponent(query)}`;
-    console.log(`Navigating to ${searchUrl}`);
-    await page.goto(searchUrl, { waitUntil: 'networkidle2' });
-
-    console.log('Waiting for search results to load...');
-    await page.waitForSelector('.mc_vtvc', { timeout: 10000 });
-    console.log('Search results loaded.');
-
-    const results: SearchResult[] = await page.evaluate(() => {
-        const items: SearchResult[] = [];
-        document.querySelectorAll('.mc_vtvc').forEach(element => {
-            const titleElement = element.querySelector('.mc_vtvc_title');
-            const urlContainer = element.querySelector('.mc_vtvc_con_rc');
-            const thumbnailElement = element.querySelector('.rms_img');
-
-            const title = titleElement ? (titleElement as HTMLElement).innerText.trim() : 'No title found';
-            const url = urlContainer ? urlContainer.getAttribute('ourl') : null;
-            const thumbnail = thumbnailElement ? (thumbnailElement as HTMLImageElement).src : null;
-
-            if (url && title && thumbnail) {
-                 items.push({ title, url, thumbnail });
-            }
-        });
-        return items;
-    });
-
-    console.log(`Found ${results.length} results with thumbnails.`);
-
-    if (results.length === 0) {
-        return `No video results found for "${query}".`;
+    console.log(`[DEBUG] WebDriver initialized. Starting search for "${query}"`);
+    let results: SearchResult[] = [];
+    try {
+        results = await _searchBrave(query, driver);
+    } catch (braveError) {
+        console.error("[DEBUG] Brave (Selenium) search failed. Trying DuckDuckGo...", braveError);
+        results = await _searchDuckDuckGo(query, driver);
     }
-
+    console.log(`[DEBUG] Found ${results.length} total results.`);
+    if (results.length === 0) {
+        return `[]`; // Return empty JSON array on no results
+    }
     return JSON.stringify(results.slice(0, options.maxResults || 10));
-
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    console.error('Error during video search:', errorMessage);
-    return `Error searching for videos: ${errorMessage}`;
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      console.error('[DEBUG] CRITICAL ERROR in video_search:', errorMessage);
+      return `{"error": "Failed to execute video search: ${errorMessage.replace(/"/g, "'")}"}`; // Return error as JSON
   } finally {
-    if (browser) {
-      await browser.close();
-      console.log('Browser closed.');
+    if (driver) {
+      await driver.quit();
+      console.log('[DEBUG] WebDriver closed.');
     }
   }
-}
-
-export async function video_search_alternative(query: string, maxResults: number = 20): Promise<string> {
-    try {
-        // This can be another implementation, maybe for a different site
-        return `This is an alternative video search for "${query}". (Not implemented yet)`;
-    } catch (error: unknown) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-        return `Error in alternative video search: ${errorMessage}`;
-    }
 }

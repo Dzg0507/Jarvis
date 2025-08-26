@@ -1,0 +1,5 @@
+
+> jarvis-local@1.0.0 start:mcp
+> node dist/mcp/mcp-server.js
+
+MCP Server is running on port 8080

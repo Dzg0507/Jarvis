@@ -1,19 +1,20 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import OpenAI from 'openai';
 import fetch from 'node-fetch';
 import { dynamicJarvisContextPromise } from './mcp-client.js';
 import { config } from '../config.js';
-const genAI = new GoogleGenerativeAI(config.ai.apiKey);
-const model = genAI.getGenerativeModel({ model: config.ai.modelName });
+// Initialize the OpenAI client to connect to the new provider
+const openai = new OpenAI({
+    apiKey: config.ai.apiKey,
+    baseURL: config.ai.baseURL,
+});
 const MCP_SERVER_URL = config.mcp.serverUrl;
 let conversationHistory = [];
 let dynamicJarvisContext = null;
-// Immediately start fetching the context, but don't block.
 dynamicJarvisContextPromise.then((context) => {
     dynamicJarvisContext = context;
 });
 export async function handleChat(req, res) {
     if (!dynamicJarvisContext) {
-        // Context is not ready yet, ask user to wait.
         return res.status(503).json({ error: 'Jarvis is still initializing. Please try again in a moment.' });
     }
     const { prompt } = req.body;
@@ -25,47 +26,52 @@ export async function handleChat(req, res) {
         return res.json({ response: "Memory cleared. I'm ready for a new conversation." });
     }
     try {
-        conversationHistory.push(`User Question: "${prompt}"`);
-        let fullPrompt = `${dynamicJarvisContext}\n\n--- Conversation History ---\n${conversationHistory.join('\n')}\n\nJarvis's Response:`;
+        conversationHistory.push({ role: 'user', content: prompt });
+        const messages = [
+            { role: 'system', content: dynamicJarvisContext },
+            ...conversationHistory
+        ];
         let finalResponse = "";
         let keepReasoning = true;
         const maxTurns = 10;
         let turns = 0;
         while (keepReasoning && turns < maxTurns) {
             turns++;
-            const result = await model.generateContent(fullPrompt);
-            const response = await result.response;
-            const text = response.text().trim();
+            const chatCompletion = await openai.chat.completions.create({
+                messages: messages,
+                model: config.ai.modelName,
+            });
+            const text = chatCompletion.choices[0]?.message?.content?.trim() || "";
+            let jsonString = null;
             const jsonMatch = text.match(/```json\s*\n([\s\S]+?)\n```/i);
             if (jsonMatch && jsonMatch[1]) {
+                jsonString = jsonMatch[1];
+            }
+            else if (text.startsWith('{') && text.endsWith('}')) {
+                jsonString = text;
+            }
+            if (jsonString) {
                 try {
-                    const toolCall = JSON.parse(jsonMatch[1]);
-                    if (toolCall.tool) {
-                        fullPrompt += text;
-                        // The AI doesn't always nest parameters correctly.
-                        // We'll gather all keys that are not 'tool' as parameters.
+                    const toolCall = JSON.parse(jsonString);
+                    if (toolCall.tool === "error") {
+                        finalResponse = `CMD ERROR: Tool call failed. The AI refused to generate a tool call for the prompt, likely due to internal safety filters.`;
+                        keepReasoning = false;
+                    }
+                    else if (toolCall.tool) {
+                        messages.push({ role: 'assistant', content: text });
                         const { tool: toolName, ...args } = toolCall;
-                        // Construct a valid JSON-RPC 2.0 request
                         const jsonRpcRequest = {
                             jsonrpc: "2.0",
                             method: "tools/call",
-                            params: {
-                                name: toolName,
-                                arguments: args
-                            },
+                            params: { name: toolName, arguments: args },
                             id: `chat_${Date.now()}`
                         };
                         const mcpResponse = await fetch(MCP_SERVER_URL, {
                             method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Accept': 'application/json, text/event-stream'
-                            },
+                            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json, text/event-stream' },
                             body: JSON.stringify(jsonRpcRequest),
                         });
                         if (!mcpResponse.ok) {
-                            const errorText = await mcpResponse.text();
-                            console.error(`MCP server error: ${mcpResponse.status} ${mcpResponse.statusText}`, errorText);
                             throw new Error(`MCP server error: ${mcpResponse.status}`);
                         }
                         const responseText = await mcpResponse.text();
@@ -88,7 +94,7 @@ export async function handleChat(req, res) {
                                 }
                             }
                         }
-                        fullPrompt += `\n\nTool Result:\n${toolResult}\n\nJarvis's Response:`;
+                        messages.push({ role: 'user', content: `Tool Result:\n${toolResult}` });
                     }
                     else {
                         finalResponse = text;
@@ -109,7 +115,7 @@ export async function handleChat(req, res) {
             finalResponse = "Sorry, I got stuck in a loop trying to figure that out. Can you rephrase your question?";
         }
         if (finalResponse) {
-            conversationHistory.push(`Jarvis's Response: ${finalResponse}`);
+            conversationHistory.push({ role: 'assistant', content: finalResponse });
         }
         res.json({ response: finalResponse });
     }

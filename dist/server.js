@@ -14,24 +14,19 @@ import { handleChat } from './chat/chathandler.js';
 import { setupMcpServer } from './mcp/mcp-server.js';
 import { initializeJarvisContext } from './chat/mcp-client.js';
 import { config } from './config.js';
+import { video_search } from './tools/index.js';
 // --- Basic Setup ---
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const app = express();
 // --- Middleware ---
-// Using a more open CORS for MCP compatibility
-app.use(cors({
-    origin: '*',
-    exposedHeaders: ['Mcp-Session-Id'],
-    allowedHeaders: ['Content-Type', 'mcp-session-id'],
-}));
+app.use(cors({ origin: '*', exposedHeaders: ['Mcp-Session-Id'], allowedHeaders: ['Content-Type', 'mcp-session-id'] }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.static('public'));
 // --- AI and MCP Configuration ---
 const ttsClient = new textToSpeech.TextToSpeechClient();
 const mcpServer = setupMcpServer(ttsClient);
 // --- API Endpoints ---
-// MCP Endpoint
 app.post('/mcp', async (req, res) => {
     try {
         const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined });
@@ -41,12 +36,30 @@ app.post('/mcp', async (req, res) => {
     }
     catch (error) {
         console.error('Error handling MCP request:', error);
-        if (!res.headersSent) {
+        if (!res.headersSent)
             res.status(500).json({ jsonrpc: '2.0', error: { code: -32603, message: 'Internal server error' }, id: null });
-        }
     }
 });
-// Original API endpoints
+app.post('/direct-video-search', async (req, res) => {
+    const { query } = req.body;
+    console.log(`[DEBUG] /direct-video-search endpoint hit. Query: "${query}"`);
+    if (!query) {
+        console.error("[DEBUG] Direct search failed: No query provided.");
+        return res.status(400).json({ error: 'No query provided.' });
+    }
+    try {
+        const resultsJsonString = await video_search(query);
+        console.log("[DEBUG] video_search tool returned:", resultsJsonString);
+        const results = JSON.parse(resultsJsonString);
+        console.log("[DEBUG] Successfully parsed tool result. Sending to client.");
+        res.json(results);
+    }
+    catch (error) {
+        console.error('[DEBUG] Direct video search error:', error);
+        const toolError = `Error during direct video search: ${error.message}`;
+        res.status(500).json({ error: toolError });
+    }
+});
 app.post('/execute', (req, res) => {
     const { code } = req.body;
     if (!code)
@@ -75,12 +88,10 @@ app.post('/tts', async (req, res) => {
             audioConfig: { audioEncoding: 'MP3', speakingRate: speakingRate || 1.0 },
         };
         const [response] = await ttsClient.synthesizeSpeech(request);
-        if (response.audioContent) {
+        if (response.audioContent)
             res.json({ audioContent: response.audioContent.toString('base64') });
-        }
-        else {
+        else
             res.status(500).json({ error: 'Failed to synthesize speech, no audio content received.' });
-        }
     }
     catch (error) {
         console.error('TTS Error:', error);
@@ -88,19 +99,18 @@ app.post('/tts', async (req, res) => {
     }
 });
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
 });
 // --- Server Start ---
 app.listen(config.server.port, () => {
-    // Initialize the Jarvis context now that the server is running
     initializeJarvisContext();
     console.log(`
   ******************************************************************
-  *                                                                *
-  *  Unified Server is RUNNING on http://localhost:${config.server.port}             *
-  *  This server provides static files, chat, TTS, and MCP tools.  *
-  *  The /execute endpoint remains a SECURITY RISK.                *
-  *                                                                *
+  * *
+  * Unified Server is RUNNING on http://localhost:${config.server.port}             *
+  * This server provides static files, chat, TTS, and MCP tools.  *
+  * The /execute endpoint remains a SECURITY RISK.                *
+  * *
   ******************************************************************
   `);
 });

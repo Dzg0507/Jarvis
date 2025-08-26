@@ -1,0 +1,11 @@
+
+  ******************************************************************
+  *                                                                *
+  * SECURITY WARNING: Local Code Execution Server is RUNNING!      *
+  * This server will execute any Python code it receives.          *
+  * DO NOT expose this port (3000) to the internet.                *
+  * Only run code from sources you trust completely.               *
+  *                                                                *
+  ******************************************************************
+
+Server listening on http://localhost:3000
