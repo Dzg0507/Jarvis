@@ -2,7 +2,7 @@
   "name": "jarvis-local",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/electron.js",
+  "main": "dist/electron.cjs",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc && tsc --project tsconfig.mcp.json",
