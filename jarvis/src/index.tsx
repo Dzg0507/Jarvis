@@ -12,6 +12,13 @@ const chatHistory = document.getElementById('chat-history')!;
 const chatForm = document.getElementById('chat-form')!;
 const chatInput = document.getElementById('chat-input') as HTMLInputElement;
 const loadingIndicator = document.getElementById('loading-indicator')!;
+const slashCommandMenu = document.getElementById('slash-command-menu')!;
+
+// Slash commands
+const slashCommands = [
+  { command: '/video', description: 'Search for a video on YouTube.' },
+  { command: '/settings', description: 'Open the settings panel.' },
+];
 
 // Local server endpoints
 const LOCAL_EXEC_URL = 'http://localhost:3000/execute';
@@ -270,6 +277,12 @@ async function handleFormSubmit(e: Event) {
   const prompt = chatInput.value.trim();
   if (!prompt) return;
 
+  if (prompt.startsWith('/video ')) {
+    handleVideoCommand(prompt);
+    chatInput.value = '';
+    return;
+  }
+
   addMessage('user', prompt);
   chatInput.value = '';
   chatInput.disabled = true;
@@ -301,6 +314,149 @@ async function handleFormSubmit(e: Event) {
     chatInput.focus();
   }
 }
+
+/**
+ * Handles the /video command.
+ * @param prompt - The user's prompt.
+ */
+async function handleVideoCommand(prompt: string) {
+  const query = prompt.substring('/video '.length);
+  addMessage('user', prompt);
+  loadingIndicator.classList.remove('hidden');
+
+  try {
+    const jsonRpcRequest = {
+      jsonrpc: '2.0',
+      method: 'tools/call',
+      params: {
+        name: 'video_search',
+        arguments: { query },
+      },
+      id: `chat_${Date.now()}`,
+    };
+
+    const response = await fetch('http://localhost:3000/mcp', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json, text/event-stream',
+      },
+      body: JSON.stringify(jsonRpcRequest),
+    });
+
+    if (!response.ok) {
+      throw new Error(`MCP server error: ${response.status}`);
+    }
+
+    const responseText = await response.text();
+    let toolResult = '';
+    const lines = responseText.split('\n');
+    for (const line of lines) {
+        if (line.startsWith('data: ')) {
+            const data = line.substring(6);
+            if (data.trim() && data !== '[DONE]') {
+                try {
+                    const jsonData = JSON.parse(data);
+                    if (jsonData.result && jsonData.result.content && jsonData.result.content[0].text) {
+                        toolResult = jsonData.result.content[0].text;
+                        break;
+                    }
+                } catch (e) {
+                    console.error("Error parsing SSE data chunk:", e);
+                }
+            }
+        }
+    }
+
+    if (toolResult) {
+      renderVideoResults(toolResult);
+    } else {
+      addMessage('ai', 'Sorry, I could not find any videos for that query.');
+    }
+  } catch (error) {
+    console.error('Video command error:', error);
+    addMessage('ai', 'Sorry, something went wrong while searching for videos.');
+  } finally {
+    loadingIndicator.classList.add('hidden');
+  }
+}
+
+/**
+ * Renders the video search results.
+ * @param results - The video search results as a JSON string.
+ */
+function renderVideoResults(results: string) {
+  const videoList = document.getElementById('video-list')!;
+  const videoResultsContainer = document.getElementById('video-results-container')!;
+  videoList.innerHTML = '';
+
+  try {
+    const parsedResults = JSON.parse(results);
+    if (Array.isArray(parsedResults)) {
+      parsedResults.forEach((video: any) => {
+        const videoElement = document.createElement('div');
+        videoElement.className = 'video-item';
+        videoElement.innerHTML = `
+          <a href="${video.url}" target="_blank">
+            <img src="${video.thumbnail}" alt="${video.title}">
+            <div class="video-info">
+              <h3>${video.title}</h3>
+              <p>${video.channel}</p>
+            </div>
+          </a>
+        `;
+        videoList.appendChild(videoElement);
+      });
+      videoResultsContainer.style.display = 'block';
+    }
+  } catch (error) {
+    console.error('Error parsing video results:', error);
+    addMessage('ai', 'Sorry, there was an error displaying the video results.');
+  }
+}
+
+/**
+ * Renders the slash command menu.
+ */
+function renderSlashCommandMenu() {
+  slashCommandMenu.innerHTML = '';
+  slashCommands.forEach(cmd => {
+    const item = document.createElement('div');
+    item.className = 'command-item';
+    item.innerHTML = `<strong>${cmd.command}</strong> - <em>${cmd.description}</em>`;
+    item.onclick = () => {
+      chatInput.value = cmd.command + ' ';
+      slashCommandMenu.classList.add('hidden');
+      chatInput.focus();
+    };
+    slashCommandMenu.appendChild(item);
+  });
+  slashCommandMenu.classList.remove('hidden');
+}
+
+/**
+ * Hides the slash command menu.
+ */
+function hideSlashCommandMenu() {
+  slashCommandMenu.classList.add('hidden');
+}
+
+// --- Event Listeners ---
+chatInput.addEventListener('input', () => {
+  if (chatInput.value === '/') {
+    renderSlashCommandMenu();
+  } else {
+    hideSlashCommandMenu();
+  }
+});
+
+// Hide menu when clicking outside
+document.addEventListener('click', (e) => {
+  if (!chatForm.contains(e.target as Node)) {
+    hideSlashCommandMenu();
+  }
+});
+
 
 // --- Initial Setup ---
 createHeaderUI();

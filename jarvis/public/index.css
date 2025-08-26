@@ -688,3 +688,83 @@ code {
     transform: scale(1.05);
     box-shadow: 0 0 30px rgba(0, 255, 136, 0.8);
 }
+
+#video-results-container {
+  display: none;
+  padding: 1rem;
+  background-color: rgba(0, 10, 5, 0.9);
+  border-top: 1px solid #00ff88;
+  overflow-y: auto;
+  max-height: 50vh;
+}
+
+#video-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.video-item {
+  background: linear-gradient(135deg, rgba(0, 255, 136, 0.1) 0%, rgba(0, 204, 102, 0.05) 100%);
+  border: 1px solid #00cc66;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.video-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 40px rgba(0, 255, 136, 0.3);
+  border-color: #00ff88;
+}
+
+.video-item a {
+  text-decoration: none;
+  color: inherit;
+}
+
+.video-item img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.video-info {
+  padding: 0.5rem;
+}
+
+.video-info h3 {
+  font-size: 1rem;
+  margin: 0;
+  color: #66ffaa;
+}
+
+.video-info p {
+  font-size: 0.8rem;
+  margin: 0;
+  color: #00ff88;
+}
+
+#slash-command-menu {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.9);
+  border: 1px solid #00ff88;
+  border-radius: 8px 8px 0 0;
+  padding: 0.5rem;
+  z-index: 10;
+}
+
+#slash-command-menu .command-item {
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+#slash-command-menu .command-item:hover {
+  background-color: rgba(0, 255, 136, 0.2);
+}
