@@ -10,7 +10,6 @@ body {
   justify-content: center;
   align-items: center;
   height: 100vh;
-  overflow: hidden;
   background-image:
     radial-gradient(circle at 20% 80%, rgba(0, 255, 136, 0.1) 0%, transparent 50%),
     radial-gradient(circle at 80% 20%, rgba(0, 255, 204, 0.08) 0%, transparent 50%),
@@ -29,7 +28,6 @@ body {
   box-shadow: none;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
   border: none;
   transition: all 0.5s ease;
 }
@@ -94,7 +92,7 @@ body {
   border: 1px solid transparent;
   animation: fadeIn 0.5s ease-in-out;
   position: relative;
-  overflow: hidden;
+  word-break: break-all;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   /* Enhanced 3D Text Effect */

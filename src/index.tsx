@@ -155,16 +155,19 @@ async function addMessage(sender: 'user' | 'ai', message: string) {
   const messageElement = document.createElement('div');
   messageElement.classList.add('message', sender);
 
-  const rawHtml = await marked.parse(message, { breaks: true, gfm: true });
-  messageElement.innerHTML = rawHtml;
-
-  chatHistory.appendChild(messageElement);
-
   if (sender === 'ai') {
+    const rawHtml = await marked.parse(message, { breaks: true, gfm: true });
+    messageElement.innerHTML = rawHtml;
     addRunButtons(messageElement);
     speakText(message);
+  } else {
+    // For user messages, display as plain text to prevent HTML rendering.
+    const pre = document.createElement('pre');
+    pre.textContent = message;
+    messageElement.appendChild(pre);
   }
 
+  chatHistory.appendChild(messageElement);
   chatHistory.scrollTop = chatHistory.scrollHeight;
 }
 
@@ -270,6 +273,16 @@ async function handleFormSubmit(e: Event) {
   const prompt = chatInput.value.trim();
   if (!prompt) return;
 
+  // Handle slash commands
+  if (prompt === '/settings') {
+    const settingsPanel = document.getElementById('settings-panel');
+    if (settingsPanel) {
+      settingsPanel.classList.toggle('hidden');
+    }
+    chatInput.value = '';
+    return;
+  }
+
   addMessage('user', prompt);
   chatInput.value = '';
   chatInput.disabled = true;
@@ -305,6 +318,23 @@ async function handleFormSubmit(e: Event) {
 // --- Initial Setup ---
 createHeaderUI();
 chatForm.addEventListener('submit', handleFormSubmit);
+
+// Prevent strange paste behavior
+chatInput.addEventListener('paste', (event) => {
+  event.preventDefault();
+  const paste = (event.clipboardData || window.clipboardData).getData('text');
+  const currentVal = chatInput.value;
+  const selectionStart = chatInput.selectionStart;
+  const selectionEnd = chatInput.selectionEnd;
+
+  // Insert pasted text at the cursor position
+  chatInput.value = currentVal.slice(0, selectionStart) + paste + currentVal.slice(selectionEnd);
+
+  // Move cursor to the end of the pasted text
+  const newCursorPos = selectionStart + paste.length;
+  chatInput.selectionStart = newCursorPos;
+  chatInput.selectionEnd = newCursorPos;
+});
 
 // Initial welcome message
 addMessage(
