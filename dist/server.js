@@ -12,6 +12,7 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 // My local modules
 import { handleChat } from './chat/chathandler.js';
 import { setupMcpServer } from './mcp/mcp-server.js';
+import { initializeJarvisContext } from './chat/mcp-client.js';
 import { config } from './config.js';
 // --- Basic Setup ---
 const __filename = fileURLToPath(import.meta.url);
@@ -91,6 +92,8 @@ app.get('/', (req, res) => {
 });
 // --- Server Start ---
 app.listen(config.server.port, () => {
+    // Initialize the Jarvis context now that the server is running
+    initializeJarvisContext();
     console.log(`
   ******************************************************************
   *                                                                *

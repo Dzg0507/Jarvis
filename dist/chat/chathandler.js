@@ -42,16 +42,52 @@ export async function handleChat(req, res) {
                     const toolCall = JSON.parse(jsonMatch[1]);
                     if (toolCall.tool) {
                         fullPrompt += text;
+                        // The AI doesn't always nest parameters correctly.
+                        // We'll gather all keys that are not 'tool' as parameters.
+                        const { tool: toolName, ...args } = toolCall;
+                        // Construct a valid JSON-RPC 2.0 request
+                        const jsonRpcRequest = {
+                            jsonrpc: "2.0",
+                            method: "tools/call",
+                            params: {
+                                name: toolName,
+                                arguments: args
+                            },
+                            id: `chat_${Date.now()}`
+                        };
                         const mcpResponse = await fetch(MCP_SERVER_URL, {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(toolCall),
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json, text/event-stream'
+                            },
+                            body: JSON.stringify(jsonRpcRequest),
                         });
                         if (!mcpResponse.ok) {
+                            const errorText = await mcpResponse.text();
+                            console.error(`MCP server error: ${mcpResponse.status} ${mcpResponse.statusText}`, errorText);
                             throw new Error(`MCP server error: ${mcpResponse.status}`);
                         }
-                        const mcpResult = await mcpResponse.json();
-                        const toolResult = mcpResult.content[0].text;
+                        const responseText = await mcpResponse.text();
+                        let toolResult = '';
+                        const lines = responseText.split('\n');
+                        for (const line of lines) {
+                            if (line.startsWith('data: ')) {
+                                const data = line.substring(6);
+                                if (data.trim() && data !== '[DONE]') {
+                                    try {
+                                        const jsonData = JSON.parse(data);
+                                        if (jsonData.result && jsonData.result.content && jsonData.result.content[0].text) {
+                                            toolResult = jsonData.result.content[0].text;
+                                            break;
+                                        }
+                                    }
+                                    catch (e) {
+                                        console.error("Error parsing SSE data chunk:", e);
+                                    }
+                                }
+                            }
+                        }
                         fullPrompt += `\n\nTool Result:\n${toolResult}\n\nJarvis's Response:`;
                     }
                     else {

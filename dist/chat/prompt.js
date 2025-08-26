@@ -4,6 +4,7 @@ export function buildBasePrompt(toolListString) {
 # Instructions
 - When the user asks a question, first check if any of your available tools can help answer it.
 - If a tool is relevant, you MUST use it. Respond with ONLY the required JSON to call the tool. Do not add any other text.
+- After you receive a Tool Result, use it to answer the user's original question. Formulate a friendly, helpful, natural language response. Do not call the same tool again unless the user asks you to.
 - If no tool is relevant, answer the question as a helpful AI assistant.
 - Do not invent tools or capabilities that you do not have.
 

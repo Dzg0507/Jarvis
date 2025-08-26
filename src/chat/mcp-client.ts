@@ -10,6 +10,15 @@ interface McpTool {
     inputSchema?: any;
 }
 
+// --- Deferred Promise Pattern ---
+let resolveJarvisContext: (context: string) => void;
+
+// Export the promise immediately. It will remain pending until initializeJarvisContext is called.
+export const dynamicJarvisContextPromise = new Promise<string>((resolve) => {
+    resolveJarvisContext = resolve;
+});
+// ---
+
 async function initializeMcpClient(): Promise<string> {
     try {
         const transport = new StreamableHTTPClientTransport(new URL(MCP_SERVER_URL));
@@ -36,8 +45,9 @@ async function initializeMcpClient(): Promise<string> {
     }
 }
 
-export let dynamicJarvisContextPromise: Promise<string>;
-
-export function initializeJarvisContext() {
-    dynamicJarvisContextPromise = initializeMcpClient();
+// This function is called by the server once it's ready.
+export async function initializeJarvisContext() {
+    const context = await initializeMcpClient();
+    // This resolves the promise that the chathandler is waiting for.
+    resolveJarvisContext(context);
 }

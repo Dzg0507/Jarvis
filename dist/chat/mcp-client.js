@@ -3,6 +3,13 @@ import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/
 import { buildBasePrompt } from './prompt.js';
 import { config } from '../config.js';
 const MCP_SERVER_URL = config.mcp.serverUrl;
+// --- Deferred Promise Pattern ---
+let resolveJarvisContext;
+// Export the promise immediately. It will remain pending until initializeJarvisContext is called.
+export const dynamicJarvisContextPromise = new Promise((resolve) => {
+    resolveJarvisContext = resolve;
+});
+// ---
 async function initializeMcpClient() {
     try {
         const transport = new StreamableHTTPClientTransport(new URL(MCP_SERVER_URL));
@@ -25,4 +32,9 @@ async function initializeMcpClient() {
         return "Error: Could not connect to MCP server to discover tools. Tool usage will not be available.";
     }
 }
-export const dynamicJarvisContextPromise = initializeMcpClient();
+// This function is called by the server once it's ready.
+export async function initializeJarvisContext() {
+    const context = await initializeMcpClient();
+    // This resolves the promise that the chathandler is waiting for.
+    resolveJarvisContext(context);
+}
