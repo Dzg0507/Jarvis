@@ -1,8 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import fetch from 'node-fetch';
-import { Request, Response } from 'express';
 
-const genAI = new GoogleGenerativeAI(process.env.API_KEY as string);
+const genAI = new GoogleGenerativeAI(process.env.API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 const MCP_SERVER_URL = 'http://localhost:8080/mcp';
@@ -24,9 +23,9 @@ You have access to a set of tools provided by an MCP server. To use a tool, you 
 When you use a tool, the system will execute it and provide you with the output. You can then use this output to formulate your final response to the user.
 `;
 
-let conversationHistory: string[] = [];
+let conversationHistory = [];
 
-export async function handleChat(req: Request, res: Response) {
+export async function handleChat(req, res) {
     const { prompt } = req.body;
     console.log(`Server: Received chat prompt: "${prompt}"`);
 
@@ -84,7 +83,7 @@ export async function handleChat(req: Request, res: Response) {
                             throw new Error(`MCP server error: ${mcpResponse.status}`);
                         }
 
-                        const mcpResult: any = await mcpResponse.json();
+                        const mcpResult = await mcpResponse.json();
                         const toolResult = mcpResult.content[0].text;
                         console.log('Server: Tool result:', toolResult);
 

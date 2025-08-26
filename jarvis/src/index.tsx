@@ -335,7 +335,7 @@ async function handleVideoCommand(prompt: string) {
       id: `chat_${Date.now()}`,
     };
 
-    const response = await fetch('http://localhost:3000/mcp', {
+    const response = await fetch('http://localhost:8080/mcp', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -443,9 +443,12 @@ function hideSlashCommandMenu() {
 
 // --- Event Listeners ---
 chatInput.addEventListener('input', () => {
-  if (chatInput.value === '/') {
+  if (chatInput.value.startsWith('/') && !slashCommandMenu.classList.contains('hidden')) {
+    // Future: filter commands based on input after /
+  } else if (chatInput.value === '/') {
     renderSlashCommandMenu();
-  } else {
+  }
+  else {
     hideSlashCommandMenu();
   }
 });
