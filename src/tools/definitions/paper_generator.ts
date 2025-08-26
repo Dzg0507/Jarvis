@@ -1,8 +1,7 @@
 import { z } from 'zod';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import PaperGenerator from '../paper-generator.js';
-import { web_search } from '../web-search.js';
-import { view_text_website } from '../web-read.js';
+import { web_search, view_text_website } from '../index.js';
 import { config } from '../../config.js';
 
 const genAI = new GoogleGenerativeAI(config.ai.apiKey as string);

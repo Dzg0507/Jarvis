@@ -1,8 +1,4 @@
 import { z } from 'zod';
-import * as textToSpeech from '@google-cloud/text-to-speech';
-import { save_speech_to_file } from '../index.js';
-
-import { z } from 'zod';
 import { save_speech_to_file } from '../index.js';
 
 export default {
