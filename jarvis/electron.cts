@@ -1,6 +1,5 @@
 import { app, BrowserWindow } from 'electron';
 import path from 'path';
-import { startServers } from './src/server';
 import { Server } from 'http';
 
 let servers: Server[];
@@ -19,7 +18,8 @@ function createWindow() {
   mainWindow.loadFile('public/gui.html');
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+  const { startServers } = await import('./src/server.js');
   servers = startServers();
   createWindow();
 
