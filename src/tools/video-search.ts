@@ -13,6 +13,7 @@ interface VideoSearchOptions {
 interface SearchResult {
     title: string;
     url: string;
+    thumbnail: string;
 }
 
 export async function video_search(query: string, options: VideoSearchOptions = {}): Promise<string> {
@@ -20,62 +21,43 @@ export async function video_search(query: string, options: VideoSearchOptions = 
   try {
     console.log(`Starting video search for query: "${query}"`);
     browser = await puppeteer.launch({
-        // Headless: true is default, but being explicit is good.
-        // Sandbox arguments are often needed in containerized environments.
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
     });
     const page = await browser.newPage();
 
-    // Go to Bing and search for videos
     const searchUrl = `https://www.bing.com/videos/search?q=${encodeURIComponent(query)}`;
     console.log(`Navigating to ${searchUrl}`);
     await page.goto(searchUrl, { waitUntil: 'networkidle2' });
 
-    // Wait for the results to load
     console.log('Waiting for search results to load...');
-    try {
-        // This is the correct selector for video result tiles on Bing.
-        await page.waitForSelector('.mc_vtvc', { timeout: 10000 });
-        console.log('Search results loaded.');
-    } catch (e) {
-        console.error("Failed to find selector '.mc_vtvc' on Bing. Dumping page HTML for debugging...");
-        const pageContent = await page.content();
-        console.log(pageContent);
-        throw new Error("Failed to find the video results container element on the page.");
-    }
+    await page.waitForSelector('.mc_vtvc', { timeout: 10000 });
+    console.log('Search results loaded.');
 
-    // Extract the search results
     const results: SearchResult[] = await page.evaluate(() => {
         const items: SearchResult[] = [];
-        // Select all video result containers
         document.querySelectorAll('.mc_vtvc').forEach(element => {
             const titleElement = element.querySelector('.mc_vtvc_title');
-            // The real URL is in the 'ourl' attribute of this div
             const urlContainer = element.querySelector('.mc_vtvc_con_rc');
+            const thumbnailElement = element.querySelector('.rms_img');
 
             const title = titleElement ? (titleElement as HTMLElement).innerText.trim() : 'No title found';
             const url = urlContainer ? urlContainer.getAttribute('ourl') : null;
+            const thumbnail = thumbnailElement ? (thumbnailElement as HTMLImageElement).src : null;
 
-            if (url) {
-                 items.push({ title, url });
+            if (url && title && thumbnail) {
+                 items.push({ title, url, thumbnail });
             }
         });
         return items;
     });
 
-    console.log(`Found ${results.length} results.`);
+    console.log(`Found ${results.length} results with thumbnails.`);
 
     if (results.length === 0) {
         return `No video results found for "${query}".`;
     }
 
-    // Format the results
-    const formattedResults = results
-        .slice(0, options.maxResults || 10) // Limit to maxResults or 10
-        .map((item, index) => `${index + 1}. ${item.title}\n   ${item.url}`)
-        .join('\n\n');
-
-    return `Found ${results.length} videos for "${query}":\n\n${formattedResults}`;
+    return JSON.stringify(results.slice(0, options.maxResults || 10));
 
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';

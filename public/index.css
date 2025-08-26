@@ -442,3 +442,74 @@ code {
 #video-results-container {
     display: none;
 }
+
+/* Video Carousel Styling */
+.message.video-carousel-message {
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    max-width: 100%; /* Allow carousel to take more width */
+}
+
+.video-carousel-container {
+    display: flex;
+    overflow-x: auto;
+    gap: 1rem;
+    padding: 1rem 0;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(57, 255, 20, 0.5) transparent;
+}
+
+.video-carousel-container::-webkit-scrollbar {
+    height: 8px;
+}
+
+.video-carousel-container::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+.video-carousel-container::-webkit-scrollbar-thumb {
+    background-color: rgba(57, 255, 20, 0.5); /* Neon green scrollbar */
+    border-radius: 4px;
+}
+
+.video-item {
+    flex: 0 0 220px; /* Fixed width for each item */
+    border: 1px solid rgba(57, 255, 20, 0.4);
+    border-radius: 12px;
+    overflow: hidden;
+    background-color: rgba(20, 150, 50, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.video-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 20px rgba(57, 255, 20, 0.3);
+}
+
+.video-item a {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.video-item img {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+    display: block;
+}
+
+.video-item .video-title {
+    padding: 0.75rem;
+    font-size: 0.9em;
+    line-height: 1.4;
+    height: 60px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+}
