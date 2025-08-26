@@ -1,14 +1,20 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { registerTools, toolDefinitions } from './tool-registrar.js';
+import { getToolConfig } from './tool-registrar.js';
 import { config } from '../config.js';
 export function setupMcpServer(ttsClient) {
     const genAI = new GoogleGenerativeAI(config.ai.apiKey);
+    // Get the tool configurations and implementations
+    const { toolDefinitions, toolImplementations } = getToolConfig(genAI, ttsClient);
+    // Create the server with the complete tool definitions
     const mcpServer = new McpServer({
         name: "jarvis-mcp-server-consolidated",
         version: "1.1.0",
         tools: toolDefinitions,
     });
-    registerTools(mcpServer, genAI, ttsClient);
+    // Register the tool implementations with the server instance
+    toolImplementations.forEach(({ name, definition, implementation }) => {
+        mcpServer.registerTool(name, definition, implementation);
+    });
     return mcpServer;
 }
