@@ -1,19 +1,20 @@
-﻿{
+{
   "name": "jarvis-local",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/electron.cjs",
   "scripts": {
-    "start": "node dist/server.js",
+    "start": "npm run build && npx electron .",
     "test": "vitest",
-    "build": "npm run build:backend && npm run build:frontend",
+    "build": "npm run build:backend && npm run build:frontend && npm run build:preload",
     "build:backend": "tsc --project tsconfig.json",
-    "build:frontend": "tsc --project tsconfig.frontend.json"
+    "build:frontend": "tsc --project tsconfig.frontend.json",
+    "build:preload": "tsc --project tsconfig.preload.json"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "module",
+  "type": "commonjs",
   "dependencies": {
     "@google-cloud/text-to-speech": "^6.2.0",
     "@google/generative-ai": "^0.14.1",
@@ -27,7 +28,8 @@
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
     "selenium-webdriver": "^4.35.0",
-    "zod": "^3.25.76"
+    "zod": "^3.25.76",
+    "marked": "^15.0.8"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",

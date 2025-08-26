@@ -1,12 +1,8 @@
-﻿<!DOCTYPE html>
-<html>
+﻿<html>
 <head>
   <title>Jarvis MPC Assistant</title>
-<<<<<<< HEAD
-  <link rel="stylesheet" href="index.css?v=1.2"> 
-=======
   <link rel="stylesheet" href="index.css?v=1.2">
->>>>>>> 5eb93c2 (Extreme overhaul)
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://esm.sh; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' https://esm.sh; connect-src 'self' http://localhost:3000; media-src 'self' data:;">
   <script type="importmap">
     {
       "imports": {
@@ -25,22 +21,13 @@
     <form id="chat-form">
       <input type="text" id="chat-input" placeholder="Ask Jarvis about MPC..." autocomplete="off" required>
       <button type="submit" aria-label="Send message">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" viewbox="0 0 24" fill="currentColor">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
           <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
         </svg>
       </button>
     </form>
   </div>
-<<<<<<< HEAD
   
-  <div id="video-results-container">
-    <h2>Video Search Results</h2>
-    <div id="video-list"></div>
-  </div>
-  <script type="module" src="index.js"></script>
-=======
-
-  <script src="index.js"></script>
->>>>>>> 5eb93c2 (Extreme overhaul)
+  <script type="module" src="../dist/src/gui.js"></script>
 </body>
 </html>

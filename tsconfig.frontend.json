@@ -4,6 +4,9 @@
     "module": "ES2020",
     "moduleResolution": "node",
     "outDir": "./public",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "outDir": "./dist/src",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -11,3 +14,5 @@
   },
   "include": ["src/index.ts"]
 }
+
+

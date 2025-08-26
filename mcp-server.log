@@ -2,6 +2,7 @@
 > jarvis-local@1.0.0 start:mcp
 > node dist/mcp/mcp-server.js
 
+<<<<<<< HEAD
 node:events:496
       throw er; // Unhandled 'error' event
       ^
@@ -26,3 +27,6 @@ Emitted 'error' event on Server instance at:
 }
 
 Node.js v22.17.1
+=======
+MCP Server is running on port 8080
+>>>>>>> 5eb93c2 (Extreme overhaul)

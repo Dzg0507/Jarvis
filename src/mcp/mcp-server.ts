@@ -1,6 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import textToSpeech from '@google-cloud/text-to-speech';
+import * as textToSpeech from '@google-cloud/text-to-speech';
 import { getToolConfig } from './tool-registrar.js';
 import { config } from '../config.js';
 

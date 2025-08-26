@@ -1,6 +1,9 @@
 import fs from 'fs';
 import path from 'path';
 import fetch from 'node-fetch';
+import * as textToSpeech from '@google-cloud/text-to-speech';
+
+
 
 const fsPromises = fs.promises;
 
@@ -52,8 +55,6 @@ export const view_text_website = async (url: string): Promise<string> => {
 
 export * from './video-search.js';
 export * from './notepad.js';
-
-import textToSpeech from '@google-cloud/text-to-speech';
 
 export const save_speech_to_file = async (
     text: string,

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import textToSpeech from '@google-cloud/text-to-speech';
+import * as textToSpeech from '@google-cloud/text-to-speech';
 import PaperGenerator from '../tools/paper-generator.js';
 import { listFiles, readFile, view_text_website, save_speech_to_file, video_search, web_search, save_note, read_notes } from '../tools/index.js';
 import { config } from '../config.js';

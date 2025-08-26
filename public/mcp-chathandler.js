@@ -28,31 +28,25 @@ let conversationHistory: string[] = [];
 
 export async function handleChat(req: Request, res: Response) {
     const { prompt } = req.body;
-    console.log(`Server: Received chat prompt: "${prompt}"`);
-
     if (!prompt) {
         return res.status(400).json({ error: 'No prompt provided.' });
     }
     
     // Server-side check for the /settings command
     if (prompt.toLowerCase().trim() === '/settings') {
-        console.log('Server: Detected /settings command. Returning display_settings tool call.');
         return res.json({
-            response: {
-                tool: "display_settings",
-                parameters: {}
-            }
+            response: 'DISPLAY_SETTINGS_CMD'
         });
     }
 
     if (prompt.toLowerCase() === 'reset conversation') {
-        console.log('Server: Resetting conversation history.');
         conversationHistory = [];
         return res.json({ response: "Memory cleared. I'm ready for a new conversation." });
     }
 
     try {
         conversationHistory.push(`User Question: "${prompt}"`);
+
         let fullPrompt = `${JARVIS_CONTEXT}\n\n--- Conversation History ---\n${conversationHistory.join('\n')}\n\nJarvis's Response:`;
         let finalResponse = "";
         let keepReasoning = true;
@@ -70,7 +64,6 @@ export async function handleChat(req: Request, res: Response) {
             if (jsonMatch && jsonMatch[1]) {
                 try {
                     const toolCall = JSON.parse(jsonMatch[1]);
-                    console.log('Server: AI model returned a tool call:', toolCall);
                     if (toolCall.tool) {
                         fullPrompt += text;
 
@@ -86,20 +79,16 @@ export async function handleChat(req: Request, res: Response) {
 
                         const mcpResult: any = await mcpResponse.json();
                         const toolResult = mcpResult.content[0].text;
-                        console.log('Server: Tool result:', toolResult);
-
                         fullPrompt += `\n\nTool Result:\n${toolResult}\n\nJarvis's Response:`;
                     } else {
                         finalResponse = text;
                         keepReasoning = false;
                     }
                 } catch (e) {
-                    console.log('Server: Failed to parse AI response as JSON, treating as final response.');
                     finalResponse = text;
                     keepReasoning = false;
                 }
             } else {
-                console.log('Server: AI response is not a tool call, treating as final response.');
                 finalResponse = text;
                 keepReasoning = false;
             }
@@ -107,18 +96,16 @@ export async function handleChat(req: Request, res: Response) {
 
         if (turns >= maxTurns) {
             finalResponse = "Sorry, I got stuck in a loop trying to figure that out. Can you rephrase your question?";
-            console.log('Server: Reached max turns without a final response.');
         }
 
         if (finalResponse) {
             conversationHistory.push(`Jarvis's Response: ${finalResponse}`);
-            console.log(`Server: Final response sent: "${finalResponse}"`);
         }
 
         res.json({ response: finalResponse });
 
     } catch (error) {
-        console.error('Server: API Error:', error);
+        console.error('API Error:', error);
         res.status(500).json({ error: 'Failed to get response from AI.' });
     }
 }

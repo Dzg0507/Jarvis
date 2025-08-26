@@ -1,12 +1,3 @@
-<<<<<<< HEAD
-import fs from 'fs';
-import path from 'path';
-import fetch from 'node-fetch';
-const fsPromises = fs.promises;
-export const listFiles = async (dirPath) => {
-    try {
-        const resolvedPath = path.resolve(dirPath);
-=======
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -20,7 +11,6 @@ const fsPromises = fs_1.default.promises;
 const listFiles = async (dirPath) => {
     try {
         const resolvedPath = path_1.default.resolve(dirPath);
->>>>>>> 5eb93c2 (Extreme overhaul)
         if (!resolvedPath.startsWith(process.cwd())) {
             return "Error: Access denied. You can only access files within the project directory.";
         }
@@ -31,16 +21,10 @@ const listFiles = async (dirPath) => {
         return `Error listing files: ${error.message}`;
     }
 };
-<<<<<<< HEAD
-export const readFile = async (filePath) => {
-    try {
-        const resolvedPath = path.resolve(filePath);
-=======
 exports.listFiles = listFiles;
 const readFile = async (filePath) => {
     try {
         const resolvedPath = path_1.default.resolve(filePath);
->>>>>>> 5eb93c2 (Extreme overhaul)
         if (!resolvedPath.startsWith(process.cwd())) {
             return "Error: Access denied. You can only access files within the project directory.";
         }
@@ -50,15 +34,6 @@ const readFile = async (filePath) => {
         return `Error reading file: ${error.message}`;
     }
 };
-<<<<<<< HEAD
-export const google_search = async (query) => {
-    // This is a placeholder. In a real implementation, you would use a search API.
-    return `Search results for "${query}"`;
-};
-export const view_text_website = async (url) => {
-    try {
-        const response = await fetch(url);
-=======
 exports.readFile = readFile;
 const google_search = async (query) => {
     // This is a placeholder. In a real implementation, you would use a search API.
@@ -68,7 +43,6 @@ exports.google_search = google_search;
 const view_text_website = async (url) => {
     try {
         const response = await (0, node_fetch_1.default)(url);
->>>>>>> 5eb93c2 (Extreme overhaul)
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -78,7 +52,4 @@ const view_text_website = async (url) => {
         return `Error reading website: ${error.message}`;
     }
 };
-<<<<<<< HEAD
-=======
 exports.view_text_website = view_text_website;
->>>>>>> 5eb93c2 (Extreme overhaul)
