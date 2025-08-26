@@ -1,0 +1,33 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <title>Jarvis MPC Assistant</title>
+  <link rel="stylesheet" href="index.css?v=1.2">
+  <script type="importmap">
+    {
+      "imports": {
+        "@google/genai": "https://esm.sh/@google/genai@^0.14.0",
+        "marked": "https://esm.sh/marked@^15.0.8"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="chat-container">
+    <div id="chat-history"></div>
+    <div id="loading-indicator" class="hidden">
+      <div class="dot-flashing"></div>
+    </div>
+    <form id="chat-form">
+      <input type="text" id="chat-input" placeholder="Ask Jarvis about MPC..." autocomplete="off" required>
+      <button type="submit" aria-label="Send message">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" viewbox="0 0 24" fill="currentColor">
+          <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
+        </svg>
+      </button>
+    </form>
+  </div>
+
+  <script type="module" src="../dist/src/gui.js"></script>
+</body>
+</html>

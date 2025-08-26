@@ -2,12 +2,11 @@
   "name": "jarvis-local",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/electron.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc",
-    "build:mcp": "tsc --project tsconfig.mcp.json",
-    "start:mcp": "node dist/mcp/mcp-server.js"
+    "build": "tsc && tsc --project tsconfig.mcp.json",
+    "start": "npm run build && electron ."
   },
   "keywords": [],
   "author": "",
@@ -20,6 +19,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
+    "node-fetch": "^3.3.2",
     "zod": "^3.25.76"
   },
   "devDependencies": {
@@ -28,6 +28,7 @@
     "@types/marked": "^5.0.2",
     "@types/node": "^24.3.0",
     "@types/node-fetch": "^2.6.13",
+    "electron": "^31.2.1",
     "typescript": "^5.5.3"
   }
 }

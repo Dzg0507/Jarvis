@@ -1,5 +1,6 @@
-import { GoogleGenerativeAI, GenerativeModel } from "@google/generative-ai";
-export default class PaperGenerator {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+class PaperGenerator {
     constructor({ model, google_search, view_text_website }) {
         this.model = model;
         this.google_search = google_search;
@@ -16,7 +17,7 @@ export default class PaperGenerator {
             console.log(`PAPER_GENERATOR: Faking web search for: "${query}"`);
             const mockResults = [
                 { title: `Study on ${query}`, url: 'http://example.com/study1', snippet: `A comprehensive study on the effects of ${topic}.` },
-                { title: `Introduction to ${query}`, url: 'http://example.com/intro1', snippet: `An introductory article about ${section}.` }
+                { title: `Introduction to ${query}`, url: 'http://example.com/intro1', snippet: `An introductory article about ${topic}.` }
             ];
             return JSON.stringify(mockResults);
         };
@@ -126,3 +127,4 @@ Please write a clear, concise, and well-structured section based on the provided
         return paper;
     }
 }
+exports.default = PaperGenerator;

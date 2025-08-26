@@ -4,7 +4,7 @@ import express from 'express';
 import cors from 'cors';
 import { z } from 'zod';
 import { listFiles, readFile, google_search, view_text_website } from './src/tools.js';
-import { PaperGenerator } from './public/paper_generator.js';
+import PaperGenerator from './src/paper_generator.js';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import 'dotenv/config';
 // AI Configuration
