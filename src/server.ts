@@ -30,6 +30,10 @@ export function startServers() {
       allowedHeaders: ['Content-Type', 'mcp-session-id'],
     }));
 
+    // --- Static file serving ---
+    const staticPath = path.join(process.cwd(), './jarvis/public');
+    app.use(express.static(staticPath));
+
     // --- Text to Speech Client ---
     const ttsClient = new textToSpeech.TextToSpeechClient();
 
