@@ -9,5 +9,5 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["electron.cts"]
+  "include": ["electron.cts", "preload.ts"]
 }

@@ -15,8 +15,8 @@ function createWindow() {
     },
   });
 
-  // Corrected: Load index.html instead of gui.html
-  mainWindow.loadFile('public/index.html');
+  // Corrected: Load index.html from the correct public folder
+  mainWindow.loadFile('jarvis/public/index.html');
 }
 
 app.whenReady().then(async () => {

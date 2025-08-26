@@ -49,8 +49,8 @@ function createWindow() {
             contextIsolation: false,
         },
     });
-    // Corrected: Load index.html instead of gui.html
-    mainWindow.loadFile('public/index.html');
+    // Corrected: Load index.html from the correct public folder
+    mainWindow.loadFile('jarvis/public/index.html');
 }
 electron_1.app.whenReady().then(async () => {
     const { startServers } = await Promise.resolve().then(() => __importStar(require('./src/server.js')));
